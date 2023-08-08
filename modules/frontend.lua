@@ -288,14 +288,14 @@ function renderItems()
                     monitor.setCursorPos(((w/2/2/2-#("x1")/2)+w/2),y+1)
                     monitor.write("\164"..tostring(math.floor(computeDP(vv,1,true)*1000)/1000).."/i")
 
-                    monitor.setCursorPos(((w/2/2+#("x8")/2)+w/2),y)
+                    monitor.setCursorPos(((w/2/2-#("x8")/2)+w/2),y)
                     monitor.write("\164"..tostring(math.floor(computeDP(vv,8,true)*1000)/1000))
-                    monitor.setCursorPos(((w/2/2+#("x8")/2)+w/2),y+1)
+                    monitor.setCursorPos(((w/2/2-#("x8")/2)+w/2),y+1)
                     monitor.write("\164"..tostring(math.floor(computeDP(vv,8,true)/8*1000)/1000).."/i")
 
-                    monitor.setCursorPos(((w/2/2/2+#("x64")/2)+w/2/2+w/2),y)
+                    monitor.setCursorPos(((w/2/2/2-#("x64")/2)+w/2/2+w/2),y)
                     monitor.write("\164"..tostring(math.floor(computeDP(vv,64,true)*1000)/1000))
-                    monitor.setCursorPos(((w/2/2/2+#("x64")/2)+w/2/2+w/2),y+1)
+                    monitor.setCursorPos(((w/2/2/2-#("x64")/2)+w/2/2+w/2),y+1)
                     monitor.write("\164"..tostring(math.floor(computeDP(vv,64,true)/64*1000)/1000).."/i")
                 elseif config.mode == "buy" then
 
