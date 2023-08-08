@@ -1,5 +1,6 @@
 local frontend = require("modules.frontend")
 --local backend = require("modules.backend")
+local itemHelper = require("modules.itemHelper")
 local bigfont = require("bigfont")
 local dw = require("discordWebhook")
 local BIL = require("BIL")
@@ -85,7 +86,9 @@ _G.SolidityPools = {
     dw = dw,
     bigfont = bigfont,
     BIL = BIL,
-    kapi = kapi
+    kapi = kapi,
+    pricesLoaded = false,
+    countsLoaded = false
 }
 
 local function crash(err)
@@ -94,5 +97,7 @@ local function crash(err)
 end
 
 parallel.waitForAny(function()
+    local ok,err = xpcall(itemHelper, crash)
+end,function()
     local ok,err = xpcall(frontend, crash)
 end)

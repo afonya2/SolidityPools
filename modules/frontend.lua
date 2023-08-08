@@ -207,8 +207,105 @@ function renderColumns()
     end
 end
 
+local function computeDP(item, count, sell)
+    if sell then
+        local mprice = item.normalPrice
+        mprice = mprice - (mprice * (config.tradingFees/100))
+        if config.dynamicPricing then
+            if item.count == 0 then
+                return mprice * count
+            else
+                return (item.normalStock/(item.count+count-1))*mprice*count
+            end
+        else
+            return mprice * count
+        end
+    else
+        local mprice = item.normalPrice
+        mprice = mprice + (mprice * (config.tradingFees/100))
+        if config.dynamicPricing then
+            if item.count == 0 then
+                return mprice * count
+            elseif item.count-count < 0 then
+                return math.huge
+            else
+                return (item.normalStock/(item.count-count+1))*mprice*count
+            end
+        else
+            return mprice * count
+        end
+    end
+end
+
 function renderItems()
-    
+    monitor.setBackgroundColor(config.palette.content.bg)
+    monitor.setTextColor(config.palette.content.fg)
+    for y=5+4+2,h-6 do
+        monitor.setCursorPos(1,y)
+        monitor.clearLine()
+    end
+    local y = 5+4+2
+    local second = false
+    for k,v in pairs(items) do
+        if selectedCategory == k then
+            for kk,vv in ipairs(v) do
+                if second then
+                    monitor.setBackgroundColor(config.palette.listB.bg)
+                    second = false
+                else
+                    monitor.setBackgroundColor(config.palette.listA.bg)
+                    second = true
+                end
+                monitor.setCursorPos(1,y)
+                monitor.clearLine()
+                monitor.setCursorPos(1,y+1)
+                monitor.clearLine()
+                if config.mode == "both" then
+                    monitor.setTextColor(config.palette.listB.itemfg)
+                    monitor.setCursorPos(w/2-#vv.name/2,y)
+                    monitor.write(vv.name)
+                    monitor.setTextColor(config.palette.listB.pricefg)
+                    monitor.setCursorPos(w/2-#("\164"..tostring(math.floor(vv.price*1000)/1000))/2,y+1)
+                    monitor.write("\164"..tostring(math.floor(vv.price*1000)/1000))
+                    --BUYING
+                    monitor.setCursorPos((w/2/2/2+#("x64")/2)-#("\164"..tostring(math.floor(computeDP(vv,64)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,64)*1000)/1000))
+                    monitor.setCursorPos((w/2/2/2+#("x64")/2)-#("\164"..tostring(math.floor(computeDP(vv,64)/64*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,64)/64*1000)/1000).."/i")
+
+                    monitor.setCursorPos((w/2/2+#("x8")/2)-#("\164"..tostring(math.floor(computeDP(vv,8)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,8)*1000)/1000))
+                    monitor.setCursorPos((w/2/2+#("x8")/2)-#("\164"..tostring(math.floor(computeDP(vv,8)/8*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,8)/8*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2/2+#("x1")/2)+w/2/2)-#("\164"..tostring(math.floor(computeDP(vv,1)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,1)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2/2+#("x1")/2)+w/2/2)-#("\164"..tostring(math.floor(computeDP(vv,1)*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,1)*1000)/1000).."/i")
+                    --SELLING
+                    monitor.setCursorPos(((w/2/2/2+#("x1")/2)+w/2)-#("\164"..tostring(math.floor(computeDP(vv,1,true)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,1,true)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2/2+#("x1")/2)+w/2)-#("\164"..tostring(math.floor(computeDP(vv,1,true)*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,1,true)*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2+#("x8")/2)+w/2)-#("\164"..tostring(math.floor(computeDP(vv,8,true)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,8,true)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2+#("x8")/2)+w/2)-#("\164"..tostring(math.floor(computeDP(vv,8,true)/8*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,8,true)/8*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2/2+#("x64")/2)+w/2/2+w/2)-#("\164"..tostring(math.floor(computeDP(vv,64,true)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,64,true)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2/2+#("x64")/2)+w/2/2+w/2)-#("\164"..tostring(math.floor(computeDP(vv,64,true)/64*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,64,true)/64*1000)/1000).."/i")
+                elseif config.mode == "buy" then
+
+                elseif config.mode == "sell" then
+
+                end
+                y = y + 2
+            end
+        end
+    end
 end
 
 function rerender()
@@ -226,6 +323,11 @@ function frontend()
         break
     end
     w,h = monitor.getSize()
+    monitor.setCursorPos(1,1)
+    monitor.write("Loading...")
+    while (not SolidityPools.pricesLoaded) or (not SolidityPools.countsLoaded) do
+        os.sleep(0)
+    end
     rerender()
     local function categoryClicker()
         while true do
@@ -237,6 +339,7 @@ function frontend()
                         if (xx-1 <= x) and (xx+#k >= x) then
                             selectedCategory = k
                             renderCategories()
+                            renderItems()
                             break
                         end
                         xx = xx + #k + 2
