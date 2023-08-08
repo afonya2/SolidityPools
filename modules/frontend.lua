@@ -178,7 +178,7 @@ function renderColumns()
         monitor.write("x64")
         monitor.setCursorPos((w/2/2/2-#("x32")/2)+w/2, 5+4+1)
         monitor.write("x32")
-        monitor.setCursorPos((w/2/2-#("x1")/2)+w/2, 5+4+1)
+        monitor.setCursorPos((w/2/2-#("x8")/2)+w/2, 5+4+1)
         monitor.write("x8")
         monitor.setCursorPos((w/2/2-#("x1")/2)+w/2/2/2+w/2, 5+4+1)
         monitor.write("x1")
@@ -211,7 +211,7 @@ local function computeDP(item, count, sell)
     if sell then
         local mprice = item.normalPrice
         mprice = mprice - (mprice * (config.tradingFees/100))
-        if config.dynamicPricing then
+        if config.dynamicPricing or item.forcePrice then
             if item.count == 0 then
                 return mprice * count
             else
@@ -223,7 +223,7 @@ local function computeDP(item, count, sell)
     else
         local mprice = item.normalPrice
         mprice = mprice + (mprice * (config.tradingFees/100))
-        if config.dynamicPricing then
+        if config.dynamicPricing or item.forcePrice then
             if item.count == 0 then
                 return mprice * count
             elseif item.count-count < 0 then
@@ -298,9 +298,89 @@ function renderItems()
                     monitor.setCursorPos(((w/2/2/2-#("x64")/2)+w/2/2+w/2),y+1)
                     monitor.write("\164"..tostring(math.floor(computeDP(vv,64,true)/64*1000)/1000).."/i")
                 elseif config.mode == "buy" then
+                    monitor.setTextColor(config.palette.listB.itemfg)
+                    monitor.setCursorPos(w-#vv.name+1,y)
+                    monitor.write(vv.name)
+                    monitor.setTextColor(config.palette.listB.pricefg)
+                    monitor.setCursorPos(w-#("\164"..tostring(math.floor(vv.price*1000)/1000))+1,y+1)
+                    monitor.write("\164"..tostring(math.floor(vv.price*1000)/1000))
 
+                    monitor.setCursorPos((w/2/2/2+#("x4096")/2)-#("\164"..tostring(math.floor(computeDP(vv,4096)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,4096)*1000)/1000))
+                    monitor.setCursorPos((w/2/2/2+#("x4096")/2)-#("\164"..tostring(math.floor(computeDP(vv,4096)/4096*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,4096)/4096*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2/2+#("x512")/2)+w/2/2/2)-#("\164"..tostring(math.floor(computeDP(vv,512)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,512)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2/2+#("x512")/2)+w/2/2/2)-#("\164"..tostring(math.floor(computeDP(vv,512)/512*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,512)/512*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2+#("x128")/2)+w/2/2/2)-#("\164"..tostring(math.floor(computeDP(vv,128)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,128)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2+#("x128")/2)+w/2/2/2)-#("\164"..tostring(math.floor(computeDP(vv,128)/128*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,128)/128*1000)/1000).."/i")
+
+                    monitor.setCursorPos((w/2+#("x64")/2)-#("\164"..tostring(math.floor(computeDP(vv,64)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,64)*1000)/1000))
+                    monitor.setCursorPos((w/2+#("x64")/2)-#("\164"..tostring(math.floor(computeDP(vv,64)/64*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,64)/64*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2/2+#("x32")/2)+w/2)-#("\164"..tostring(math.floor(computeDP(vv,32)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,32)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2/2+#("x32")/2)+w/2)-#("\164"..tostring(math.floor(computeDP(vv,32)/32*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,32)/32*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2+#("x8")/2)+w/2)-#("\164"..tostring(math.floor(computeDP(vv,8)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,8)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2+#("x8")/2)+w/2)-#("\164"..tostring(math.floor(computeDP(vv,8)/8*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,8)/8*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2+#("x1")/2)+w/2/2/2+w/2)-#("\164"..tostring(math.floor(computeDP(vv,1)*1000)/1000)),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,1)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2+#("x1")/2)+w/2/2/2+w/2)-#("\164"..tostring(math.floor(computeDP(vv,1)*1000)/1000).."/i"),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,1)*1000)/1000).."/i")
                 elseif config.mode == "sell" then
+                    monitor.setTextColor(config.palette.listB.itemfg)
+                    monitor.setCursorPos(1,y)
+                    monitor.write(vv.name)
+                    monitor.setTextColor(config.palette.listB.pricefg)
+                    monitor.setCursorPos(1,y+1)
+                    monitor.write("\164"..tostring(math.floor(vv.price*1000)/1000))
 
+                    monitor.setCursorPos((w/2/2/2-#("x1")/2),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,1,true)*1000)/1000))
+                    monitor.setCursorPos((w/2/2/2-#("x1")/2),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,1,true)*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2/2-#("x8")/2)+w/2/2/2),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,8,true)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2/2-#("x8")/2)+w/2/2/2),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,8,true)/8*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2-#("x32")/2)+w/2/2/2),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,32,true)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2-#("x32")/2)+w/2/2/2),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,32,true)/32*1000)/1000).."/i")
+
+                    monitor.setCursorPos((w/2-#("x64")/2),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,64,true)*1000)/1000))
+                    monitor.setCursorPos((w/2-#("x64")/2),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,64,true)/64*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2/2-#("x128")/2)+w/2),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,128,true)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2/2-#("x128")/2)+w/2),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,128,true)/32*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2-#("x512")/2)+w/2),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,512,true)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2-#("x512")/2)+w/2),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,512,true)/512*1000)/1000).."/i")
+
+                    monitor.setCursorPos(((w/2/2-#("x4096")/2)+w/2/2/2+w/2),y)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,4096,true)*1000)/1000))
+                    monitor.setCursorPos(((w/2/2-#("x4096")/2)+w/2/2/2+w/2),y+1)
+                    monitor.write("\164"..tostring(math.floor(computeDP(vv,4096,true)/4096*1000)/1000).."/i")
                 end
                 y = y + 2
             end
