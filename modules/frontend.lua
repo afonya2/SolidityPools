@@ -26,8 +26,6 @@ function renderInit()
 
     monitor.setBackgroundColor(config.palette.footer.bg)
     monitor.setTextColor(config.palette.footer.fg)
-    monitor.setCursorPos(1,h-5)
-    monitor.clearLine()
     monitor.setCursorPos(1,h-4)
     monitor.clearLine()
     monitor.setCursorPos(1,h-3)
@@ -58,7 +56,10 @@ function renderInit()
 end
 
 function renderCategories()
-    local i = 1
+    monitor.setBackgroundColor(config.palette.footer.bg)
+    monitor.setTextColor(config.palette.footer.fg)
+    monitor.setCursorPos(1,h-5)
+    monitor.clearLine()
     local x = 2
     for k,v in pairs(items) do
         if k == selectedCategory then
@@ -68,14 +69,9 @@ function renderCategories()
             monitor.setBackgroundColor(config.palette.footer.bg)
             monitor.setTextColor(config.palette.footer.fg)
         end
-        if k == selectedCategory then
-            monitor.setCursorPos(x-1,h-5)
-        else
-            monitor.setCursorPos(x,h-5)
-        end
+        monitor.setCursorPos(x-1,h-5)
         monitor.write(" "..k.." ")
         x = x + #k + 2
-        i = i + 1
     end
 end
 
@@ -231,6 +227,25 @@ function frontend()
     end
     w,h = monitor.getSize()
     rerender()
+    local function categoryClicker()
+        while true do
+            local event, side, x, y = os.pullEvent("monitor_touch")
+            if side == SolidityPools.monitor.id then
+                if y == h-5 then
+                    local xx = 2
+                    for k,v in pairs(items) do
+                        if (xx-1 <= x) and (xx+#k >= x) then
+                            selectedCategory = k
+                            renderCategories()
+                            break
+                        end
+                        xx = xx + #k + 2
+                    end
+                end
+            end
+        end
+    end
+    parallel.waitForAny(categoryClicker)
 end
 
 return frontend
