@@ -140,8 +140,14 @@ function SolidityPools.loggedIn.saveUser()
 end
 
 local function crash(err)
-    print(err)
-    bsod(err)
+    if err ~= "Terminated" then
+        print(err)
+        bsod(err)
+    else
+        monitor.setBackgroundColor(colors.black)
+        monitor.setTextColor(colors.white)
+        monitor.clear()
+    end
 end
 
 parallel.waitForAny(function()

@@ -134,10 +134,11 @@ Withdraws Krist from your account
             chatbox.tell(user, "&cPrice must be a number", config.shopname, nil, "format")
             return
         end
+        
     elseif args[1] == "balance" then
         if fs.exists("/users/"..data.user.uuid..".cache") then
             local pdat = loadCache("/users/"..data.user.uuid..".cache")
-            chatbox.tell(user, "&aBalance: &e"..pdat.balance.."kst", config.shopname, nil, "format")
+            chatbox.tell(user, "&aBalance: &e"..(math.floor(pdat.balance*1000)/1000).."kst", config.shopname, nil, "format")
         else
             chatbox.tell(user, "&aBalance: &e0kst", config.shopname, nil, "format")
         end
