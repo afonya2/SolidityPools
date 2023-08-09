@@ -57,6 +57,76 @@ local function isPlayerClose(name)
     return false
 end
 
+local function getTargetStorage()
+    local storages = BIL.getStorages()
+    local highst = 0
+    local highsti = 0
+    for k,v in ipairs(storages) do
+        local stinfo = BIL.getSize({v})
+        if stinfo.free > highst then
+            highst = stinfo.free
+            highsti = k
+        end
+    end
+    if highsti ~= 0 then
+        return storages[highsti]
+    end
+end
+
+local function onItemPickup()
+    for k,v in pairs(items) do
+        for kk,vv in ipairs(v) do
+            if BIL.isItemMatch("turtle", 1, turtle.getItemDetail(1), vv.query) then
+                local targetStorage = getTargetStorage()
+                if targetStorage ~= nil then
+                    local tsw = peripheral.wrap(targetStorage)
+                    local mod = peripheral.find("modem")
+                    local worthMoney = computeDP(vv, turtle.getItemCount(1), true)
+                    local coant = turtle.getItemCount(1)
+                    local pdat = loadCache("/users/"..loggedIn.uuid..".cache")
+                    pdat.balance = pdat.balance + worthMoney
+                    table.insert(pdat.transactions, {
+                        from = "system",
+                        to = "balance",
+                        value = worthMoney,
+                        ["type"] = "sell"
+                    })
+                    saveCache("/users/"..loggedIn.uuid..".cache", pdat)
+                    loggedIn.loadUser()
+                    SolidityPools.itemChangeInfo.is = true
+                    SolidityPools.itemChangeInfo.category = k
+                    SolidityPools.itemChangeInfo.pos = kk
+                    SolidityPools.itemChangeInfo.mode = "sell"
+                    SolidityPools.itemChangeInfo.time = os.clock()
+                    tsw.pullItems(mod.getNameLocal(), 1)
+                    os.queueEvent("sp_rerender")
+                    chatbox.tell(loggedIn.uuid, "&2Success! &aYou sold &7x"..coant.." "..vv.name.." &afor &e"..(math.floor(worthMoney*1000)/1000).."kst &7("..(math.floor(worthMoney/coant*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                    if config.webhook then
+                        local emb = dw.createEmbed()
+                            :setAuthor("Solidity Pools")
+                            :setTitle("Item sell")
+                            :setColor(3302600)
+                            :addField("User: ", loggedIn.username.." (`"..loggedIn.uuid.."`)",true)
+                            :addField("New balance: ", tostring(math.floor(pdat.balance*1000)/1000),true)
+                            :addField("-","-")
+                            :addField("Item name: ", vv.name,true)
+                            :addField("Count: ", coant,true)
+                            :addField("Worth: ", tostring(math.floor(worthMoney*1000)/1000),true)
+                            :setTimestamp()
+                            :setFooter("SolidityPools v"..SolidityPools.version)
+                        dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+                    end
+                else
+                    turtle.drop()
+                    chatbox.tell(loggedIn.uuid, "&cOur storage is full, please try again later", config.shopname, nil, "format")
+                end
+                return
+            end
+        end
+    end
+    turtle.drop()
+end
+
 function sessionHandler()
     config = SolidityPools.config
     items = SolidityPools.items
@@ -65,6 +135,12 @@ function sessionHandler()
     dw = SolidityPools.dw
     local function itemPup()
         while true do
+            if loggedIn.is then
+                local succ = turtle.suckUp()
+                if succ then
+                    onItemPickup()
+                end
+            end
             os.sleep(0)
         end
     end

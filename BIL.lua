@@ -37,7 +37,7 @@ end
 
 function BIL.isItemMatch(storage, slot, rawDat, query)
     local pq = BIL.processQuery(query)
-    local stwrap = peripheral.wrap(storage)
+    local stwrap = BIL.getStorage(storage).wrap
     if pq.query == nil then
         if rawDat.name ~= pq.itemId then
             return false
@@ -159,23 +159,23 @@ function BIL.translateStorages(storages)
 end
 
 function BIL.getStorage(lid)
-    if peripheral.isPresent(v) then
-        if (lid == "turtle") and (turtle ~= nil) then
-            local mod = peripheral.find("modem")
-            local wrap = generateTurtleInvWrap(mod.getNameLocal())
-            return {
-                id = mod.getNameLocal(),
-                wrap = wrap
-            }
-        else
+    if (lid == "turtle") and (turtle ~= nil) then
+        local mod = peripheral.find("modem")
+        local wrap = generateTurtleInvWrap(mod.getNameLocal())
+        return {
+            id = mod.getNameLocal(),
+            wrap = wrap
+        }
+    else
+        if peripheral.isPresent(lid) then
             local wrap = generateCustomInvWrap(lid)
             return {
                 id = lid,
                 wrap = wrap
             }
+        else
+            return nil, "Peripheral not found"
         end
-    else
-        return nil, "Peripheral not found"
     end
 end
 
