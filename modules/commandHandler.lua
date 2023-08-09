@@ -173,7 +173,7 @@ Withdraws Krist from your account
             end
             pdat.balance = pdat.balance - tonumber(args[2])
             table.insert(pdat.transactions, {
-                from = config.address,
+                from = "balance",
                 to = args[3],
                 value = tonumber(args[2]),
                 ["type"] = "withdraw"
@@ -239,10 +239,61 @@ Withdraws Krist from your account
             end
             chatbox.tell(user, "&cInvalid item", config.shopname, nil, "format")
         end
+    elseif args[1] == "buy" then
+        if (args[2] == nil) or (args[3] == nil) then
+            chatbox.tell(user, "&cUsage \\"..config.command.." buy <item> <amount>", config.shopname, nil, "format")
+            return
+        end
+        if tonumber(args[3]) == nil then
+            chatbox.tell(user, "&cAmount must be a number", config.shopname, nil, "format")
+            return
+        end
+        if tonumber(args[3]) < 1 then
+            chatbox.tell(user, "&cNice try dude!", config.shopname, nil, "format")
+            return
+        end
+        if tonumber(args[3]) ~= math.floor(tonumber(args[3])) then
+            chatbox.tell(user, "&cAmount must be an exact number", config.shopname, nil, "format")
+            return
+        end
+        if (not loggedIn.is) or (loggedIn.uuid ~= data.user.uuid) then
+            chatbox.tell(user, "&cCurrently you are not in a session", config.shopname, nil, "format")
+            return
+        end
+        for k,v in pairs(items) do
+            for kk,vv in ipairs(v) do
+                if vv.name:gsub(" ", ""):lower() == args[2]:lower() then
+                    local costMoney = computeDP(vv, tonumber(args[3]), true)
+                    local pdat = loadCache("/users/"..data.user.uuid..".cache")
+                    if pdat.balance < costMoney then
+                        chatbox.tell(user, "&cYou don't have enough funds to buy this amount", config.shopname, nil, "format")
+                        return
+                    end
+                    if vv.count < tonumber(args[3]) then
+                        chatbox.tell(user, "&cNot enough items in the storage", config.shopname, nil, "format")
+                        return
+                    end
+                    pdat.balance = pdat.balance - costMoney
+                    table.insert(pdat.transactions, {
+                        from = "balance",
+                        to = "system",
+                        value = costMoney,
+                        ["type"] = "buy"
+                    })
+                    saveCache("/users/"..data.user.uuid..".cache", pdat)
+                    BIL.dropItems(vv.query, tonumber(args[3]))
+                    loggedIn.loadUser()
+                    os.queueEvent("sp_rerender")
+                    chatbox.tell(user, "&2Success! &aYou bought &7x"..tonumber(args[3]).." "..vv.name.." &afor &e"..(math.floor(costMoney*1000)/1000).."kst &7("..(math.floor(costMoney/tonumber(args[3])*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                    return
+                end
+            end
+        end
+        chatbox.tell(user, "&cInvalid item", config.shopname, nil, "format")
     elseif args[1] == "exit" then
         if (loggedIn.is) and (loggedIn.uuid == data.user.uuid) then
             loggedIn.saveUser()
-            chatbox.tell(user, "&aYour remaining &e"..loggedIn.balance.."kst &awill be stored for your next purchase", config.shopname, nil, "format")
+            chatbox.tell(user, "&aYour remaining &e"..(math.floor(loggedIn.balance*1000)/1000).."kst &awill be stored for your next purchase", config.shopname, nil, "format")
             loggedIn.is = false
             loggedIn.username = ""
             loggedIn.uuid = ""

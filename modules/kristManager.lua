@@ -99,9 +99,8 @@ local function onTrans(json)
                 pdat.balance = pdat.balance + trans.value
                 table.insert(pdat.transactions, {
                     from = trans.from,
-                    to = trans.to,
+                    to = "balance",
                     value = trans.value,
-                    metadata = trans.metadata,
                     ["type"] = "deposit"
                 })
                 saveCache("/users/"..trans.meta.useruuid..".cache", pdat)
