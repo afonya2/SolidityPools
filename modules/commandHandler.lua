@@ -134,7 +134,31 @@ Withdraws Krist from your account
             chatbox.tell(user, "&cPrice must be a number", config.shopname, nil, "format")
             return
         end
-        
+        for k,v in pairs(items) do
+            for kk,vv in ipairs(v) do
+                if vv.name:gsub(" ", ""):lower() == args[2]:lower() then
+                    if computeDP(vv, 1, true) < tonumber(args[3]) then
+                        chatbox.tell(user, "&cThere is no way to profit arbitrage at current prices", config.shopname, nil, "format")
+                        return 
+                    end
+                    for ib=1,math.huge do
+                        if computeDP(vv, ib, true) < tonumber(args[3])*ib then
+                            local diff = computeDP(vv, ib-1, true)-tonumber(args[3])*(ib-1)
+                            local totell = [[
+&aIf a shop selling for &e]]..args[3]..[[kst&a, then:
+&aBuy &7]]..(ib-1)..[[ &aitems, paying &e]]..(math.floor(tonumber(args[3])*(ib-1)*1000)/1000)..[[kst
+&aSell &7]]..(ib-1)..[[ &aitems here, earning &e]]..(math.floor(computeDP(vv, ib-1, true)*1000)/1000)..[[kst
+&aKeep the difference of &e]]..(math.floor(diff*1000)/1000)..[[kst &aas profit
+                            ]]
+                            chatbox.tell(user, totell, config.shopname, nil, "format")
+                            return
+                        end 
+                    end
+                    return
+                end
+            end
+        end
+        chatbox.tell(user, "&cInvalid item", config.shopname, nil, "format")
     elseif args[1] == "balance" then
         if fs.exists("/users/"..data.user.uuid..".cache") then
             local pdat = loadCache("/users/"..data.user.uuid..".cache")
