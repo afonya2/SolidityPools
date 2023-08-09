@@ -204,6 +204,29 @@ function BIL.list(storages)
     return out
 end
 
+function BIL.getSize(storages)
+    if storages == nil then
+        storages = BIL.getStorages()
+    end
+    local ustorages = BIL.translateStorages(storages)
+    local out = {
+        total = 0,
+        used = 0,
+        free = 0
+    }
+    for k,v in ipairs(ustorages) do
+        out.total = out.total + v.wrap.size()
+        local llist = v.wrap.list()
+        for kk,vv in pairs(llist) do
+            if vv ~= nil then
+                out.used = out.used + 1
+            end
+        end 
+    end
+    out.free = out.total - out.used
+    return out
+end
+
 function BIL.getItemCount(query, storages)
     if storages == nil then
         storages = BIL.getStorages()
