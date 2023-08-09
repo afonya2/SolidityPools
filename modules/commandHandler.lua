@@ -47,6 +47,16 @@ local function computeDP(item, count, sell)
     end
 end
 
+local function isPlayerClose(name)
+    local man = peripheral.find("manipulator")
+    for k,v in ipairs(man.sense()) do
+        if (v.key == "minecraft:player") and (v.name:lower() == name:lower()) then
+            return true
+        end
+    end
+    return false
+end
+
 local function onCommand(user, args, data)
     if args[1] == "help" then
         local helptxt = [[
@@ -71,6 +81,11 @@ Withdraws Krist from your account
         ]]
         chatbox.tell(user, helptxt, config.shopname, nil, "markdown")
     elseif args[1] == "start" then
+        if not isPlayerClose(user) then
+            local x,_,z = gps.locate()
+            chatbox.tell(user, "&cPlease come close to the shop (x: "..x..", z: "..z..")", config.shopname, nil, "format")
+            return
+        end
         if not loggedIn.is then
             chatbox.tell(user, "&aStarting session as &7"..user, config.shopname, nil, "format")
             loggedIn.is = true
@@ -247,13 +262,32 @@ function commandHandler()
     BIL = SolidityPools.BIL
     loggedIn = SolidityPools.loggedIn
     dw = SolidityPools.dw
-    while true do
-        local event, user, command, args, data = os.pullEvent("command")
-        if command == config.command then
-            onCommand(user, args, data)
+    local function commander()
+        while true do
+            local event, user, command, args, data = os.pullEvent("command")
+            if command == config.command then
+                onCommand(user, args, data)
+            end
+            os.sleep(0)
         end
-        os.sleep(0)
     end
+    local function sessionVerifier()
+        while true do
+            if loggedIn.is then
+                if not isPlayerClose(loggedIn.username) then
+                    loggedIn.saveUser()
+                    chatbox.tell(loggedIn.username, "&aYour remaining &e"..loggedIn.balance.."kst &awill be stored for your next purchase", config.shopname, nil, "format")
+                    loggedIn.is = false
+                    loggedIn.username = ""
+                    loggedIn.uuid = ""
+                    loggedIn.loadUser()
+                    os.queueEvent("sp_rerender")
+                end
+            end
+            os.sleep(0)
+        end 
+    end
+    parallel.waitForAny(commander, sessionVerifier)
 end
 
 return commandHandler
