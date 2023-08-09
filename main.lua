@@ -1,6 +1,7 @@
 local frontend = require("modules.frontend")
 --local backend = require("modules.backend")
 local itemHelper = require("modules.itemHelper")
+local commandHandler = require("modules.commandHandler")
 local bigfont = require("bigfont")
 local dw = require("discordWebhook")
 local BIL = require("BIL")
@@ -15,6 +16,18 @@ end
 local function saveConfig(filename, data)
     local fa = fs.open(filename, "w")
     fa.write(textutils.serialise(data))
+    fa.close()
+end
+local function loadCache(filename)
+    local fa = fs.open(filename, "r")
+    local fi = fa.readAll()
+    fi = fi:gsub("SYSTEM CACHE, DO NOT EDIT!","")
+    fa.close()
+    return textutils.unserialise(fi)
+end
+local function saveCache(filename, data)
+    local fa = fs.open(filename, "w")
+    fa.write("SYSTEM CACHE, DO NOT EDIT!"..textutils.serialise(data))
     fa.close()
 end
 
@@ -77,7 +90,13 @@ _G.SolidityPools = {
     config = config,
     items = items,
     version = "1.0",
-    loggedIn = {},
+    loggedIn = {
+        is = false,
+        username = "",
+        uuid = "",
+        balance = 0,
+        transactions = {}
+    },
     monitor = {
         id = peripheral.getName(monitor),
         wrap = monitor
@@ -88,8 +107,25 @@ _G.SolidityPools = {
     BIL = BIL,
     kapi = kapi,
     pricesLoaded = false,
-    countsLoaded = false
+    countsLoaded = false,
+    kristConnected = false
 }
+function SolidityPools.loggedIn.loadUser()
+    if fs.exists("users/"..SolidityPools.loggedIn.uuid..".cache") then
+        local dat = loadCache("users/"..SolidityPools.loggedIn.uuid..".cache")
+        SolidityPools.loggedIn.balance = dat.balance
+        SolidityPools.loggedIn.transactions = dat.transactions
+    else
+        SolidityPools.loggedIn.balance = 0
+        SolidityPools.loggedIn.transactions = {}
+    end
+end
+function SolidityPools.loggedIn.saveUser()
+    saveCache("users/"..SolidityPools.loggedIn.uuid..".cache", {
+        balance = SolidityPools.loggedIn.balance,
+        transactions = SolidityPools.loggedIn.transactions
+    })
+end
 
 local function crash(err)
     print(err)
@@ -100,4 +136,6 @@ parallel.waitForAny(function()
     local ok,err = xpcall(itemHelper, crash)
 end,function()
     local ok,err = xpcall(frontend, crash)
+end,function()
+    local ok,err = xpcall(commandHandler, crash)
 end)

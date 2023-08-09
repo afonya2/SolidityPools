@@ -3,6 +3,7 @@ local config = nil
 local items = nil
 local bigfont = nil
 local BIL = nil
+local loggedIn = nil
 local w,h = 0
 
 local selectedCategory = ""
@@ -26,8 +27,6 @@ function renderInit()
 
     monitor.setBackgroundColor(config.palette.footer.bg)
     monitor.setTextColor(config.palette.footer.fg)
-    monitor.setCursorPos(1,h-4)
-    monitor.clearLine()
     monitor.setCursorPos(1,h-3)
     monitor.clearLine()
     monitor.setCursorPos(1,h-2)
@@ -49,7 +48,17 @@ function renderInit()
 
     monitor.setBackgroundColor(config.palette.footer.bg)
     monitor.setTextColor(config.palette.footer.fg)
-    bigfont.writeOn(monitor, 1, "Start with: \\"..config.command.." start", 2,h-3)
+    if loggedIn.is then
+        bigfont.writeOn(monitor, 1, "Balance: \164"..tostring(math.floor(loggedIn.balance*1000)/1000), 2,h-2)
+        monitor.setCursorPos(w-#(loggedIn.username.." Exit with \\"..config.command.." exit")-1, h-2)
+        monitor.write(loggedIn.username.." ")
+        monitor.setTextColor(config.palette.footer.exitfg)
+        monitor.write("Exit with \\"..config.command.." exit")
+        monitor.setCursorPos(w-#("Deposit at "..config.address)-1,h-1)
+        monitor.write("Deposit at "..config.address)
+    else
+        bigfont.writeOn(monitor, 1, "Start with: \\"..config.command.." start", 2,h-2)
+    end
     renderCategories()
     renderBanners()
     renderItems()
@@ -58,7 +67,7 @@ end
 function renderCategories()
     monitor.setBackgroundColor(config.palette.footer.bg)
     monitor.setTextColor(config.palette.footer.fg)
-    monitor.setCursorPos(1,h-5)
+    monitor.setCursorPos(1,h-4)
     monitor.clearLine()
     local x = 2
     for k,v in pairs(items) do
@@ -69,7 +78,7 @@ function renderCategories()
             monitor.setBackgroundColor(config.palette.footer.bg)
             monitor.setTextColor(config.palette.footer.fg)
         end
-        monitor.setCursorPos(x-1,h-5)
+        monitor.setCursorPos(x-1,h-4)
         monitor.write(" "..k.." ")
         x = x + #k + 2
     end
@@ -240,7 +249,7 @@ end
 function renderItems()
     monitor.setBackgroundColor(config.palette.content.bg)
     monitor.setTextColor(config.palette.content.fg)
-    for y=5+4+2,h-6 do
+    for y=5+4+2,h-5 do
         monitor.setCursorPos(1,y)
         monitor.clearLine()
     end
@@ -398,6 +407,7 @@ function frontend()
     items = SolidityPools.items
     bigfont = SolidityPools.bigfont
     BIL = SolidityPools.BIL
+    loggedIn = SolidityPools.loggedIn
     for k,v in pairs(items) do
         selectedCategory = k
         break
@@ -413,7 +423,7 @@ function frontend()
         while true do
             local event, side, x, y = os.pullEvent("monitor_touch")
             if side == SolidityPools.monitor.id then
-                if y == h-5 then
+                if y == h-4 then
                     local xx = 2
                     for k,v in pairs(items) do
                         if (xx-1 <= x) and (xx+#k >= x) then
@@ -428,7 +438,13 @@ function frontend()
             end
         end
     end
-    parallel.waitForAny(categoryClicker)
+    local function sp_rerender()
+        while true do
+            local event = os.pullEvent("sp_rerender")
+            rerender()
+        end
+    end
+    parallel.waitForAny(categoryClicker,sp_rerender)
 end
 
 return frontend
