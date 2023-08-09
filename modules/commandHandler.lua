@@ -262,32 +262,13 @@ function commandHandler()
     BIL = SolidityPools.BIL
     loggedIn = SolidityPools.loggedIn
     dw = SolidityPools.dw
-    local function commander()
-        while true do
-            local event, user, command, args, data = os.pullEvent("command")
-            if command == config.command then
-                onCommand(user, args, data)
-            end
-            os.sleep(0)
+    while true do
+        local event, user, command, args, data = os.pullEvent("command")
+        if command == config.command then
+            onCommand(user, args, data)
         end
+        os.sleep(0)
     end
-    local function sessionVerifier()
-        while true do
-            if loggedIn.is then
-                if not isPlayerClose(loggedIn.username) then
-                    loggedIn.saveUser()
-                    chatbox.tell(loggedIn.username, "&aYour remaining &e"..loggedIn.balance.."kst &awill be stored for your next purchase", config.shopname, nil, "format")
-                    loggedIn.is = false
-                    loggedIn.username = ""
-                    loggedIn.uuid = ""
-                    loggedIn.loadUser()
-                    os.queueEvent("sp_rerender")
-                end
-            end
-            os.sleep(0)
-        end 
-    end
-    parallel.waitForAny(commander, sessionVerifier)
 end
 
 return commandHandler

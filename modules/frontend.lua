@@ -272,7 +272,7 @@ function renderItems()
             monitor.setCursorPos(w/2-#vv.name/2+1,y)
             monitor.write(vv.name)
             monitor.setTextColor(config.palette.listB.pricefg)
-            monitor.setCursorPos(w/2-#("\164"..tostring(math.floor(vv.price*1000)/1000))/2,y+1)
+            monitor.setCursorPos(w/2-#("\164"..tostring(math.floor(vv.price*1000)/1000))/2+1,y+1)
             monitor.write("\164"..tostring(math.floor(vv.price*1000)/1000))
             --BUYING
             monitor.setCursorPos((w/2/2/2+#("x64")/2)-#("\164"..tostring(math.floor(computeDP(vv,64)*1000)/1000)),y)
