@@ -113,7 +113,14 @@ _G.SolidityPools = {
     kapi = kapi,
     pricesLoaded = false,
     countsLoaded = false,
-    kristConnected = false
+    kristConnected = false,
+    itemChangeInfo = {
+        is = false,
+        category = "",
+        pos = 0,
+        mode = "",
+        time = 0
+    }
 }
 function SolidityPools.loggedIn.loadUser()
     if fs.exists("users/"..SolidityPools.loggedIn.uuid..".cache") then

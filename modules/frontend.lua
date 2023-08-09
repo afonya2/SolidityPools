@@ -263,6 +263,13 @@ function renderItems()
             monitor.setBackgroundColor(config.palette.listA.bg)
             second = true
         end
+        if SolidityPools.itemChangeInfo.is and (SolidityPools.itemChangeInfo.category == selectedCategory) and (SolidityPools.itemChangeInfo.pos == kk) then
+            if SolidityPools.itemChangeInfo.mode == "buy" then
+                monitor.setBackgroundColor(config.palette.buy.bg)
+            elseif SolidityPools.itemChangeInfo.mode == "sell" then
+                monitor.setBackgroundColor(config.palette.sell.bg)
+            end
+        end
         monitor.setCursorPos(1,y)
         monitor.clearLine()
         monitor.setCursorPos(1,y+1)
@@ -446,7 +453,20 @@ function frontend()
             rerender()
         end
     end
-    parallel.waitForAny(categoryClicker,sp_rerender)
+    local function itemChangeListener()
+        local was = false
+        while true do
+            if SolidityPools.itemChangeInfo.is and (SolidityPools.itemChangeInfo.category == selectedCategory) then
+                was = true
+            end
+            if (not SolidityPools.itemChangeInfo.is) and was then
+                renderItems()
+                was = false
+            end
+            os.sleep(0)
+        end
+    end
+    parallel.waitForAny(categoryClicker,sp_rerender,itemChangeListener)
 end
 
 return frontend

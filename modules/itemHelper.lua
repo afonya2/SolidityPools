@@ -26,6 +26,13 @@ function itemHelper()
         end
         SolidityPools.pricesLoaded = true
         SolidityPools.countsLoaded = true
+        if SolidityPools.itemChangeInfo.is and (os.clock()-SolidityPools.itemChangeInfo.time > 1) then
+            SolidityPools.itemChangeInfo.is = false
+            SolidityPools.itemChangeInfo.category = ""
+            SolidityPools.itemChangeInfo.pos = 0
+            SolidityPools.itemChangeInfo.mode = ""
+            SolidityPools.itemChangeInfo.time = 0
+        end
         os.sleep(0)
     end
 end

@@ -281,10 +281,30 @@ Withdraws Krist from your account
                         ["type"] = "buy"
                     })
                     saveCache("/users/"..data.user.uuid..".cache", pdat)
-                    BIL.dropItems(vv.query, tonumber(args[3]))
                     loggedIn.loadUser()
+                    SolidityPools.itemChangeInfo.is = true
+                    SolidityPools.itemChangeInfo.category = k
+                    SolidityPools.itemChangeInfo.pos = kk
+                    SolidityPools.itemChangeInfo.mode = "buy"
+                    SolidityPools.itemChangeInfo.time = os.clock()
+                    BIL.dropItems(vv.query, tonumber(args[3]))
                     os.queueEvent("sp_rerender")
                     chatbox.tell(user, "&2Success! &aYou bought &7x"..tonumber(args[3]).." "..vv.name.." &afor &e"..(math.floor(costMoney*1000)/1000).."kst &7("..(math.floor(costMoney/tonumber(args[3])*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                    if config.webhook then
+                        local emb = dw.createEmbed()
+                            :setAuthor("Solidity Pools")
+                            :setTitle("Item purchase")
+                            :setColor(3302600)
+                            :addField("User: ", user.." ("..data.user.uuid..")",true)
+                            :addField("New balance: ", tostring(math.floor(pdat.balance*1000)/1000),true)
+                            :addField("-","-")
+                            :addField("Item name", vv.name,true)
+                            :addField("Count", args[3],true)
+                            :addField("Cost", tostring(math.floor(costMoney*1000)/1000),true)
+                            :setTimestamp()
+                            :setFooter("SolidityPools v"..SolidityPools.version)
+                        dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+                    end
                     return
                 end
             end
