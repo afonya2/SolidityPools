@@ -66,6 +66,8 @@ Displays information about the shop / item
 Exits a session
 `\]]..config.command..[[ balance`
 Displays your balance
+`\]]..config.command..[[ withdraw <amount> [<target>]`
+Withdraws Krist from your account
         ]]
         chatbox.tell(user, helptxt, config.shopname, nil, "markdown")
     elseif args[1] == "start" then
@@ -123,6 +125,66 @@ Displays your balance
             chatbox.tell(user, "&aBalance: &e"..pdat.balance.."kst", config.shopname, nil, "format")
         else
             chatbox.tell(user, "&aBalance: &e0kst", config.shopname, nil, "format")
+        end
+    elseif args[1] == "withdraw" then
+        if (args[2] == nil) then
+            chatbox.tell(user, "&cUsage \\"..config.command.." withdraw <amount> [<target>]", config.shopname, nil, "format")
+            return
+        end
+        if tonumber(args[2]) == nil then
+            chatbox.tell(user, "&cAmount must be a number", config.shopname, nil, "format")
+            return
+        end
+        if tonumber(args[2]) < 1 then
+            chatbox.tell(user, "&cNice try dude!", config.shopname, nil, "format")
+            return
+        end
+        if tonumber(args[2]) ~= math.floor(tonumber(args[2])) then
+            chatbox.tell(user, "&cAmount must be an exact number", config.shopname, nil, "format")
+            return
+        end
+        if args[3] == nil then
+            args[3] = (data.user.uuid.."@sc.kst"):gsub("-","")
+        end
+        if fs.exists("/users/"..data.user.uuid..".cache") then
+            local pdat = loadCache("/users/"..data.user.uuid..".cache")
+            if pdat.balance < tonumber(args[2]) then
+                chatbox.tell(user, "&cYou don't have enough funds to withdraw this amount", config.shopname, nil, "format")
+                return
+            end
+            if SolidityPools.kapi.getBalance(config.address) < tonumber(args[2]) then
+                chatbox.tell(user, "&c"..config.shopname.." don't have enough funds to withdraw this amount", config.shopname, nil, "format")
+                return
+            end
+            pdat.balance = pdat.balance - tonumber(args[2])
+            table.insert(pdat.transactions, {
+                from = config.address,
+                to = args[3],
+                value = tonumber(args[2]),
+                ["type"] = "withdraw"
+            })
+            SolidityPools.kapi.makeTransaction(config.privateKey, args[3], tonumber(args[2]), "Withdrawed amount")
+            saveCache("/users/"..data.user.uuid..".cache", pdat)
+            if loggedIn.uuid == data.user.uuid then
+                loggedIn.loadUser()
+                os.queueEvent("sp_rerender")
+            end
+            chatbox.tell(user,"&e"..tonumber(args[2]).."kst &awas withdrawed from your account",config.shopname,nil,"format")
+            if config.webhook then
+                local emb = dw.createEmbed()
+                    :setAuthor("Solidity Pools")
+                    :setTitle("Withdraw")
+                    :setColor(3328100)
+                    :addField("User: ", user.." ("..data.user.uuid..")",true)
+                    :addField("To: ", args[3],true)
+                    :addField("Value: ", args[2],true)
+                    :addField("New balance: ", tostring(math.floor(pdat.balance*1000)/1000),true)
+                    :setTimestamp()
+                    :setFooter("SolidityPools v"..SolidityPools.version)
+                dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+            end
+        else
+            chatbox.tell(user, "&cYou don't have enough funds to withdraw this amount", config.shopname, nil, "format")
         end
     elseif args[1] == "info" then
         if args[2] == nil then
