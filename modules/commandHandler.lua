@@ -2,6 +2,7 @@ local config = nil
 local items = nil
 local BIL = nil
 local loggedIn = nil
+local dw = nil
 
 local function loadCache(filename)
     local fa = fs.open(filename, "r")
@@ -9,6 +10,11 @@ local function loadCache(filename)
     fi = fi:gsub("SYSTEM CACHE, DO NOT EDIT!","")
     fa.close()
     return textutils.unserialise(fi)
+end
+local function saveCache(filename, data)
+    local fa = fs.open(filename, "w")
+    fa.write("SYSTEM CACHE, DO NOT EDIT!"..textutils.serialise(data))
+    fa.close()
 end
 
 local function computeDP(item, count, sell)
@@ -69,6 +75,9 @@ Displays your balance
             loggedIn.username = user:lower()
             loggedIn.uuid = data.user.uuid
             loggedIn.loadUser()
+            if not fs.exists("/users/"..loggedIn.uuid..".cache") then
+                loggedIn.saveUser()
+            end
             os.queueEvent("sp_rerender")
         else
             chatbox.tell(user, "&cThere is currently a running session", config.shopname, nil, "format")
@@ -175,6 +184,7 @@ function commandHandler()
     items = SolidityPools.items
     BIL = SolidityPools.BIL
     loggedIn = SolidityPools.loggedIn
+    dw = SolidityPools.dw
     while true do
         local event, user, command, args, data = os.pullEvent("command")
         if command == config.command then

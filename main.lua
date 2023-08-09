@@ -1,7 +1,7 @@
 local frontend = require("modules.frontend")
---local backend = require("modules.backend")
 local itemHelper = require("modules.itemHelper")
 local commandHandler = require("modules.commandHandler")
+local kristManager = require("modules.kristManager")
 local bigfont = require("bigfont")
 local dw = require("discordWebhook")
 local BIL = require("BIL")
@@ -79,11 +79,15 @@ function bsod(message)
             :setTitle("The shop ran into a problem and needs restart")
             :setColor(13120050)
             :setDescription("Information: "..message)
-            :addField("Traceback: ", stack)
+            :addField("Traceback: ", "`"..stack.."`")
             :setTimestamp()
             :setFooter("SolidityPools v"..SolidityPools.version)
         dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
     end
+end
+
+if (SolidityPools ~= nil) and (SolidityPools.ws ~= nil) then
+    SolidityPools.ws.close()
 end
 
 _G.SolidityPools = {
@@ -138,4 +142,6 @@ end,function()
     local ok,err = xpcall(frontend, crash)
 end,function()
     local ok,err = xpcall(commandHandler, crash)
+end,function()
+    local ok,err = xpcall(kristManager, crash)
 end)

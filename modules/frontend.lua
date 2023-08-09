@@ -269,7 +269,7 @@ function renderItems()
         monitor.clearLine()
         if config.mode == "both" then
             monitor.setTextColor(config.palette.listB.itemfg)
-            monitor.setCursorPos(w/2-#vv.name/2,y)
+            monitor.setCursorPos(w/2-#vv.name/2+1,y)
             monitor.write(vv.name)
             monitor.setTextColor(config.palette.listB.pricefg)
             monitor.setCursorPos(w/2-#("\164"..tostring(math.floor(vv.price*1000)/1000))/2,y+1)
@@ -414,6 +414,12 @@ function frontend()
     while (not SolidityPools.pricesLoaded) or (not SolidityPools.countsLoaded) do
         os.sleep(0)
     end
+    monitor.setCursorPos(1,1)
+    monitor.clearLine()
+    monitor.write("Connecting...")
+    while not SolidityPools.kristConnected do
+        os.sleep(0)
+    end
     rerender()
     local function categoryClicker()
         while true do
@@ -436,7 +442,7 @@ function frontend()
     end
     local function sp_rerender()
         while true do
-            local event = os.pullEvent("sp_rerender")
+            os.pullEvent("sp_rerender")
             rerender()
         end
     end
