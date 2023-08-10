@@ -21,7 +21,7 @@ local function computeDP(item, count, sell)
     if sell then
         local mprice = item.normalPrice
         mprice = mprice - (mprice * (config.tradingFees/100))
-        if config.dynamicPricing or item.forcePrice then
+        if config.dynamicPricing and (not item.forcePrice) then
             if item.count == 0 then
                 return mprice * count
             else
@@ -319,7 +319,7 @@ Withdraws Krist from your account
         for k,v in pairs(items) do
             for kk,vv in ipairs(v) do
                 if vv.name:gsub(" ", ""):lower() == args[2]:lower() then
-                    local costMoney = computeDP(vv, tonumber(args[3]), true)
+                    local costMoney = computeDP(vv, tonumber(args[3]))
                     local pdat = loadCache("/users/"..data.user.uuid..".cache")
                     if pdat.balance < costMoney then
                         chatbox.tell(user, "&cYou don't have enough funds to buy this amount", config.shopname, nil, "format")

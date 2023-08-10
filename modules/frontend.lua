@@ -220,7 +220,7 @@ local function computeDP(item, count, sell)
     if sell then
         local mprice = item.normalPrice
         mprice = mprice - (mprice * (config.tradingFees/100))
-        if config.dynamicPricing or item.forcePrice then
+        if config.dynamicPricing and (not item.forcePrice) then
             if item.count == 0 then
                 return mprice * count
             else
