@@ -5,14 +5,22 @@ local loggedIn = nil
 local dw = nil
 
 local function loadCache(filename)
-    local fa = fs.open(filename, "r")
+    local fa,fserr = fs.open(filename, "r")
+    if fa == nil then
+        print("FS Error: "..fserr)
+        return loadCache(filename)
+    end
     local fi = fa.readAll()
     fi = fi:gsub("SYSTEM CACHE, DO NOT EDIT!","")
     fa.close()
     return textutils.unserialise(fi)
 end
 local function saveCache(filename, data)
-    local fa = fs.open(filename, "w")
+    local fa,fserr = fs.open(filename, "w")
+    if fa == nil then
+        print("FS Error: "..fserr)
+        return saveCache(filename, data)
+    end
     fa.write("SYSTEM CACHE, DO NOT EDIT!"..textutils.serialise(data))
     fa.close()
 end
