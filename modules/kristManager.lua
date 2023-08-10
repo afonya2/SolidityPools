@@ -97,12 +97,15 @@ local function onTrans(json)
             if fs.exists("/users/"..trans.meta.useruuid..".cache") then
                 local pdat = loadCache("/users/"..trans.meta.useruuid..".cache")
                 pdat.balance = pdat.balance + trans.value
-                table.insert(pdat.transactions, {
+                table.insert(pdat.transactions, 1, {
                     from = trans.from,
                     to = "balance",
                     value = trans.value,
                     ["type"] = "deposit"
                 })
+                while #pdat.transactions > 10 do
+                    table.remove(pdat.transactions, #pdat.transactions)
+                end
                 saveCache("/users/"..trans.meta.useruuid..".cache", pdat)
                 if loggedIn.uuid == trans.meta.useruuid then
                     loggedIn.loadUser()

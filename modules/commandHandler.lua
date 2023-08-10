@@ -219,12 +219,15 @@ Withdraws Krist from your account
                 return
             end
             pdat.balance = pdat.balance - tonumber(args[2])
-            table.insert(pdat.transactions, {
+            table.insert(pdat.transactions, 1, {
                 from = "balance",
                 to = args[3],
                 value = tonumber(args[2]),
                 ["type"] = "withdraw"
             })
+            while #pdat.transactions > 10 do
+                table.remove(pdat.transactions, #pdat.transactions)
+            end
             SolidityPools.kapi.makeTransaction(config.privateKey, args[3], tonumber(args[2]), "Withdrawed amount")
             saveCache("/users/"..data.user.uuid..".cache", pdat)
             if loggedIn.uuid == data.user.uuid then
@@ -325,12 +328,15 @@ Withdraws Krist from your account
                         return
                     end
                     pdat.balance = pdat.balance - costMoney
-                    table.insert(pdat.transactions, {
+                    table.insert(pdat.transactions, 1, {
                         from = "balance",
                         to = "system",
                         value = costMoney,
                         ["type"] = "buy"
                     })
+                    while #pdat.transactions > 10 do
+                        table.remove(pdat.transactions, #pdat.transactions)
+                    end
                     saveCache("/users/"..data.user.uuid..".cache", pdat)
                     loggedIn.loadUser()
                     SolidityPools.itemChangeInfo.is = true
