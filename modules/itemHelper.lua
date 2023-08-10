@@ -3,10 +3,11 @@ function itemHelper()
         if SolidityPools.config.dynamicPricing then
             for k,v in pairs(SolidityPools.items) do
                 for kk,vv in ipairs(v) do
+                    local count = SolidityPools.BIL.getItemCount(vv.query)
                     if vv.forcePrice then
                         SolidityPools.items[k][kk].price = vv.normalPrice
+                        SolidityPools.items[k][kk].count = count
                     else
-                        local count = SolidityPools.BIL.getItemCount(vv.query)
                         if count == 0 then
                             SolidityPools.items[k][kk].price = vv.normalPrice
                         else
@@ -26,13 +27,6 @@ function itemHelper()
         end
         SolidityPools.pricesLoaded = true
         SolidityPools.countsLoaded = true
-        if SolidityPools.itemChangeInfo.is and (os.clock()-SolidityPools.itemChangeInfo.time > 1) then
-            SolidityPools.itemChangeInfo.is = false
-            SolidityPools.itemChangeInfo.category = ""
-            SolidityPools.itemChangeInfo.pos = 0
-            SolidityPools.itemChangeInfo.mode = ""
-            SolidityPools.itemChangeInfo.time = 0
-        end
         os.sleep(0)
     end
 end

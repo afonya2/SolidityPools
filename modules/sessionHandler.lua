@@ -3,6 +3,7 @@ local items = nil
 local BIL = nil
 local loggedIn = nil
 local dw = nil
+local itemChangeInfo = nil
 
 local function loadCache(filename)
     local fa,fserr = fs.open(filename, "r")
@@ -148,6 +149,7 @@ function sessionHandler()
     BIL = SolidityPools.BIL
     loggedIn = SolidityPools.loggedIn
     dw = SolidityPools.dw
+    itemChangeInfo = SolidityPools.itemChangeInfo
     local function itemPup()
         while true do
             if ((config.mode == "both") or (config.mode == "sell")) and loggedIn.is and (not SolidityPools.itemChangeInfo.is) then
@@ -191,7 +193,36 @@ function sessionHandler()
             os.sleep(0)
         end 
     end
-    parallel.waitForAny(itemPup, sessionVerifier, sessionTimeout)
+    local function itemChangeChanger()
+        while true do
+            if itemChangeInfo.is and (os.clock()-itemChangeInfo.time > 1) then
+                if config.dynamicPricing then
+                    local count = SolidityPools.BIL.getItemCount(items[itemChangeInfo.category][itemChangeInfo.pos].query)
+                    if items[itemChangeInfo.category][itemChangeInfo.pos].forcePrice then
+                        items[itemChangeInfo.category][itemChangeInfo.pos].price = items[itemChangeInfo.category][itemChangeInfo.pos].normalPrice
+                        items[itemChangeInfo.category][itemChangeInfo.pos].count = count
+                    else
+                        if count == 0 then
+                            items[itemChangeInfo.category][itemChangeInfo.pos].price = items[itemChangeInfo.category][itemChangeInfo.pos].normalPrice
+                        else
+                            items[itemChangeInfo.category][itemChangeInfo.pos].price = (items[itemChangeInfo.category][itemChangeInfo.pos].normalStock/count)*items[itemChangeInfo.category][itemChangeInfo.pos].normalPrice
+                        end
+                        items[itemChangeInfo.category][itemChangeInfo.pos].count = count
+                    end
+                else
+                    items[itemChangeInfo.category][itemChangeInfo.pos].price = items[itemChangeInfo.category][itemChangeInfo.pos].normalPrice
+                    items[itemChangeInfo.category][itemChangeInfo.pos].count = BIL.getItemCount(items[itemChangeInfo.category][itemChangeInfo.pos].query)
+                end
+                itemChangeInfo.is = false
+                itemChangeInfo.category = ""
+                itemChangeInfo.pos = 0
+                itemChangeInfo.mode = ""
+                itemChangeInfo.time = 0
+            end
+            os.sleep(0)
+        end
+    end
+    parallel.waitForAny(itemPup, sessionVerifier, sessionTimeout, itemChangeChanger)
 end
 
 return sessionHandler
