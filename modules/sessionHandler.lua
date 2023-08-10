@@ -85,6 +85,9 @@ local function onItemPickup()
     for k,v in pairs(items) do
         for kk,vv in ipairs(v) do
             if BIL.isItemMatch("turtle", 1, turtle.getItemDetail(1), vv.query) then
+                if not loggedIn.is then
+                    turtle.drop()
+                end
                 local targetStorage = getTargetStorage()
                 if targetStorage ~= nil then
                     local tsw = peripheral.wrap(targetStorage)
@@ -175,7 +178,7 @@ function sessionHandler()
     local function sessionTimeout()
         while true do
             if loggedIn.is then
-                if os.clock()-loggedIn.timeout >= 10 then
+                if os.clock()-loggedIn.timeout >= 20 then
                     loggedIn.saveUser()
                     chatbox.tell(loggedIn.username, "&aYour remaining &e"..(math.floor(loggedIn.balance*1000)/1000).."kst &awill be stored for your next purchase", config.shopname, nil, "format")
                     loggedIn.is = false
