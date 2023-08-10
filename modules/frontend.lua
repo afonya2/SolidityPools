@@ -224,7 +224,7 @@ local function computeDP(item, count, sell)
             if item.count == 0 then
                 return mprice * count
             else
-                return (item.normalStock/(item.count+count-1))*mprice*count
+                return (item.normalStock/(item.count+count))*mprice*count
             end
         else
             return mprice * count

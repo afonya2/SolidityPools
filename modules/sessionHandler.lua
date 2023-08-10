@@ -33,7 +33,7 @@ local function computeDP(item, count, sell)
             if item.count == 0 then
                 return mprice * count
             else
-                return (item.normalStock/(item.count+count-1))*mprice*count
+                return (item.normalStock/(item.count+count))*mprice*count
             end
         else
             return mprice * count
@@ -150,7 +150,7 @@ function sessionHandler()
     dw = SolidityPools.dw
     local function itemPup()
         while true do
-            if ((config.mode == "both") or (config.mode == "sell")) and loggedIn.is then
+            if ((config.mode == "both") or (config.mode == "sell")) and loggedIn.is and (not SolidityPools.itemChangeInfo.is) then
                 local succ = turtle.suckUp()
                 if succ then
                     onItemPickup()

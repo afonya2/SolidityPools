@@ -33,7 +33,7 @@ local function computeDP(item, count, sell)
             if item.count == 0 then
                 return mprice * count
             else
-                return (item.normalStock/(item.count+count-1))*mprice*count
+                return (item.normalStock/(item.count+count))*mprice*count
             end
         else
             return mprice * count
@@ -177,7 +177,7 @@ Withdraws Krist from your account
                         return 
                     end
                     for ib=1,math.huge do
-                        if (computeDP(vv, ib, true) < tonumber(args[3])*ib) or (ib == 1000) then
+                        if (computeDP(vv, ib, true) < tonumber(args[3])*ib) or (ib == 10001) then
                             local diff = computeDP(vv, ib-1, true)-tonumber(args[3])*(ib-1)
                             local totell = [[
 &aIf a shop selling for &e]]..args[3]..[[kst&a, then:
@@ -327,6 +327,10 @@ Withdraws Krist from your account
         end
         if (not loggedIn.is) or (loggedIn.uuid ~= data.user.uuid) then
             chatbox.tell(user, "&cCurrently you are not in a session", config.shopname, nil, "format")
+            return
+        end
+        if SolidityPools.itemChangeInfo.is then
+            chatbox.tell(user, "&cPlease wait a few seconds", config.shopname, nil, "format")
             return
         end
         for k,v in pairs(items) do
