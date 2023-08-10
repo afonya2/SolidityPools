@@ -91,6 +91,7 @@ Withdraws Krist from your account
             loggedIn.is = true
             loggedIn.username = user:lower()
             loggedIn.uuid = data.user.uuid
+            loggedIn.timeout = os.clock()
             loggedIn.loadUser()
             if not fs.exists("/users/"..loggedIn.uuid..".cache") then
                 loggedIn.saveUser()
@@ -349,6 +350,7 @@ Withdraws Krist from your account
                     BIL.dropItems(vv.query, tonumber(args[3]))
                     os.queueEvent("sp_rerender")
                     chatbox.tell(user, "&2Success! &aYou bought &7x"..tonumber(args[3]).." "..vv.name.." &afor &e"..(math.floor(costMoney*1000)/1000).."kst &7("..(math.floor(costMoney/tonumber(args[3])*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                    loggedIn.timeout = os.clock()
                     if config.webhook then
                         local emb = dw.createEmbed()
                             :setAuthor("Solidity Pools")
@@ -376,6 +378,7 @@ Withdraws Krist from your account
             loggedIn.is = false
             loggedIn.username = ""
             loggedIn.uuid = ""
+            loggedIn.timeout = 0
             loggedIn.loadUser()
             os.queueEvent("sp_rerender")
         else

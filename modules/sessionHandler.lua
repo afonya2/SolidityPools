@@ -104,6 +104,7 @@ local function onItemPickup()
                     tsw.pullItems(mod.getNameLocal(), 1)
                     os.queueEvent("sp_rerender")
                     chatbox.tell(loggedIn.uuid, "&2Success! &aYou sold &7x"..coant.." "..vv.name.." &afor &e"..(math.floor(worthMoney*1000)/1000).."kst &7("..(math.floor(worthMoney/coant*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                    loggedIn.timeout = os.clock()
                     if config.webhook then
                         local emb = dw.createEmbed()
                             :setAuthor("Solidity Pools")
@@ -163,7 +164,23 @@ function sessionHandler()
             os.sleep(0)
         end 
     end
-    parallel.waitForAny(itemPup, sessionVerifier)
+    local function sessionTimeout()
+        while true do
+            if loggedIn.is then
+                if os.clock()-loggedIn.timeout >= 10 then
+                    loggedIn.saveUser()
+                    chatbox.tell(loggedIn.username, "&aYour remaining &e"..(math.floor(loggedIn.balance*1000)/1000).."kst &awill be stored for your next purchase", config.shopname, nil, "format")
+                    loggedIn.is = false
+                    loggedIn.username = ""
+                    loggedIn.uuid = ""
+                    loggedIn.loadUser()
+                    os.queueEvent("sp_rerender")
+                end
+            end
+            os.sleep(0)
+        end 
+    end
+    parallel.waitForAny(itemPup, sessionVerifier, sessionTimeout)
 end
 
 return sessionHandler

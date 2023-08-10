@@ -100,7 +100,8 @@ _G.SolidityPools = {
         username = "",
         uuid = "",
         balance = 0,
-        transactions = {}
+        transactions = {},
+        timeout = 0
     },
     monitor = {
         id = peripheral.getName(monitor),
