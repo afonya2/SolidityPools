@@ -165,7 +165,7 @@ Withdraws Krist from your account
                         return 
                     end
                     for ib=1,math.huge do
-                        if computeDP(vv, ib, true) < tonumber(args[3])*ib then
+                        if (computeDP(vv, ib, true) < tonumber(args[3])*ib) or (ib == 1000) then
                             local diff = computeDP(vv, ib-1, true)-tonumber(args[3])*(ib-1)
                             local totell = [[
 &aIf a shop selling for &e]]..args[3]..[[kst&a, then:
@@ -175,7 +175,7 @@ Withdraws Krist from your account
                             ]]
                             chatbox.tell(user, totell, config.shopname, nil, "format")
                             return
-                        end 
+                        end
                     end
                     return
                 end
@@ -395,6 +395,9 @@ function commandHandler()
     BIL = SolidityPools.BIL
     loggedIn = SolidityPools.loggedIn
     dw = SolidityPools.dw
+    while (not SolidityPools.pricesLoaded) or (not SolidityPools.countsLoaded) do
+        os.sleep(0)
+    end
     while true do
         local event, user, command, args, data = os.pullEvent("command")
         if command == config.command then
