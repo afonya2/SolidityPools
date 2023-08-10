@@ -109,6 +109,10 @@ Withdraws Krist from your account
             chatbox.tell(user, "&cAmount must be a number", config.shopname, nil, "format")
             return
         end
+        if tonumber(args[3]) ~= math.floor(tonumber(args[3])) then
+            chatbox.tell(user, "&cAmount must be an exact number", config.shopname, nil, "format")
+            return
+        end
         for k,v in pairs(items) do
             for kk,vv in ipairs(v) do
                 if vv.name:gsub(" ", ""):lower() == args[2]:lower() then
