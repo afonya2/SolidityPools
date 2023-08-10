@@ -254,11 +254,14 @@ Withdraws Krist from your account
     elseif args[1] == "info" then
         if args[2] == nil then
             local stor = BIL.getSize()
+            local x,y,z = gps.locate()
             local smsg = [[
 &aShop info:
 &aname: &7]]..config.shopname..[[
 
 &aDescription: &7]]..config.description..[[
+
+&aLocation: &7]].."x: "..x..", y: "..y..", z: "..z..[[
 
 &aaddress: &7]]..config.address..[[
 
