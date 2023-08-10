@@ -111,15 +111,37 @@ Withdraws Krist from your account
         for k,v in pairs(items) do
             for kk,vv in ipairs(v) do
                 if vv.name:gsub(" ", ""):lower() == args[2]:lower() then
-                    if tonumber(args[3]) > 0 then
-                        local pric = computeDP(vv,tonumber(args[3]))
-                        chatbox.tell(user, "&aBuying &7x"..args[3].." "..vv.name.." &awould cost you &e"..(math.floor(pric*1000)/1000).."kst &7("..(math.floor(pric/tonumber(args[3])*1000)/1000).."kst/i)", config.shopname, nil, "format")
-                    elseif tonumber(args[3]) < 0 then
-                        local pric = computeDP(vv,math.abs(tonumber(args[3])),true)
-                        chatbox.tell(user, "&cSelling &7x"..math.abs(tonumber(args[3])).." "..vv.name.." &cwould earn you &e"..(math.floor(pric*1000)/1000).."kst &7("..(math.floor(pric/math.abs(tonumber(args[3]))*1000)/1000).."kst/i)", config.shopname, nil, "format")
-                    else
-                        chatbox.tell(user, "&aThe middle price of &7"..args[2].." &ais &e"..vv.price.."kst", config.shopname, nil, "format")
-                    end
+                    if config.mode == "both" then
+                        if tonumber(args[3]) > 0 then
+                            local pric = computeDP(vv,tonumber(args[3]))
+                            chatbox.tell(user, "&aBuying &7x"..args[3].." "..vv.name.." &awould cost you &e"..(math.floor(pric*1000)/1000).."kst &7("..(math.floor(pric/tonumber(args[3])*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                        elseif tonumber(args[3]) < 0 then
+                            local pric = computeDP(vv,math.abs(tonumber(args[3])),true)
+                            chatbox.tell(user, "&cSelling &7x"..math.abs(tonumber(args[3])).." "..vv.name.." &cwould earn you &e"..(math.floor(pric*1000)/1000).."kst &7("..(math.floor(pric/math.abs(tonumber(args[3]))*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                        else
+                            chatbox.tell(user, "&aThe middle price of &7"..args[2].." &ais &e"..vv.price.."kst", config.shopname, nil, "format")
+                        end
+                    elseif config.mode == "buy" then
+                        if tonumber(args[3]) > 0 then
+                            local pric = computeDP(vv,tonumber(args[3]))
+                            chatbox.tell(user, "&aBuying &7x"..args[3].." "..vv.name.." &awould cost you &e"..(math.floor(pric*1000)/1000).."kst &7("..(math.floor(pric/tonumber(args[3])*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                        elseif tonumber(args[3]) < 0 then
+                            local pric = computeDP(vv,math.abs(tonumber(args[3])))
+                            chatbox.tell(user, "&aBuying &7x"..math.abs(tonumber(args[3])).." "..vv.name.." &awould cost you &e"..(math.floor(pric*1000)/1000).."kst &7("..(math.floor(pric/math.abs(tonumber(args[3]))*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                        else
+                            chatbox.tell(user, "&aThe middle price of &7"..args[2].." &ais &e"..vv.price.."kst", config.shopname, nil, "format")
+                        end
+                    elseif config.mode == "sell" then
+                        if tonumber(args[3]) > 0 then
+                            local pric = computeDP(vv,tonumber(args[3]),true)
+                            chatbox.tell(user, "&cSelling &7x"..args[3].." "..vv.name.." &cwould earn you &e"..(math.floor(pric*1000)/1000).."kst &7("..(math.floor(pric/tonumber(args[3])*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                        elseif tonumber(args[3]) < 0 then
+                            local pric = computeDP(vv,math.abs(tonumber(args[3])),true)
+                            chatbox.tell(user, "&cSelling &7x"..math.abs(tonumber(args[3])).." "..vv.name.." &cwould earn you &e"..(math.floor(pric*1000)/1000).."kst &7("..(math.floor(pric/math.abs(tonumber(args[3]))*1000)/1000).."kst/i)", config.shopname, nil, "format")
+                        else
+                            chatbox.tell(user, "&aThe middle price of &7"..args[2].." &ais &e"..vv.price.."kst", config.shopname, nil, "format")
+                        end
+                    end 
                     return
                 end
             end
@@ -265,6 +287,10 @@ Withdraws Krist from your account
             chatbox.tell(user, "&cInvalid item", config.shopname, nil, "format")
         end
     elseif args[1] == "buy" then
+        if config.mode == "sell" then
+            chatbox.tell(user, "&cThis shop only buys items!", config.shopname, nil, "format")
+            return
+        end
         if (args[2] == nil) or (args[3] == nil) then
             chatbox.tell(user, "&cUsage \\"..config.command.." buy <item> <amount>", config.shopname, nil, "format")
             return

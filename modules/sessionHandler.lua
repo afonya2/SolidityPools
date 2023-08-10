@@ -135,7 +135,7 @@ function sessionHandler()
     dw = SolidityPools.dw
     local function itemPup()
         while true do
-            if loggedIn.is then
+            if ((config.mode == "both") or (config.mode == "sell")) and loggedIn.is then
                 local succ = turtle.suckUp()
                 if succ then
                     onItemPickup()
