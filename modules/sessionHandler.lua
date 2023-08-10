@@ -149,7 +149,7 @@ function sessionHandler()
             if loggedIn.is then
                 if not isPlayerClose(loggedIn.username) then
                     loggedIn.saveUser()
-                    chatbox.tell(loggedIn.username, "&aYour remaining &e"..loggedIn.balance.."kst &awill be stored for your next purchase", config.shopname, nil, "format")
+                    chatbox.tell(loggedIn.username, "&aYour remaining &e"..(math.floor(loggedIn.balance*1000)/1000).."kst &awill be stored for your next purchase", config.shopname, nil, "format")
                     loggedIn.is = false
                     loggedIn.username = ""
                     loggedIn.uuid = ""

@@ -265,8 +265,7 @@ Withdraws Krist from your account
 
 &aaddress: &7]]..config.address..[[
 
-&aTrading fees: &7]]..config.tradingFees..[[
-
+&aTrading fees: &7]]..config.tradingFees..[[%
 &aBalance: &e]]..SolidityPools.kapi.getBalance(config.address)..[[kst
 &aStorage: &7]]..stor.used.."/"..stor.total.." ("..(math.floor(stor.used/stor.total*100*1000)/1000).."%)"..[[
             ]]
@@ -283,7 +282,7 @@ Withdraws Krist from your account
 
 &aItem count: &7]]..vv.count..[[
 
-&aPrice: &e]]..vv.price..[[kst
+&aPrice: &e]]..(math.floor(vv.price*1000)/1000)..[[kst
                         ]]
                         chatbox.tell(user, itmsg, config.shopname, nil, "format")
                         return
