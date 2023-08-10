@@ -85,12 +85,15 @@ local function onItemPickup()
                     local coant = turtle.getItemCount(1)
                     local pdat = loadCache("/users/"..loggedIn.uuid..".cache")
                     pdat.balance = pdat.balance + worthMoney
-                    table.insert(pdat.transactions, {
+                    table.insert(pdat.transactions, 1, {
                         from = "system",
                         to = "balance",
                         value = worthMoney,
                         ["type"] = "sell"
                     })
+                    while #pdat.transactions > 10 do
+                        table.remove(pdat.transactions, #pdat.transactions)
+                    end
                     saveCache("/users/"..loggedIn.uuid..".cache", pdat)
                     loggedIn.loadUser()
                     SolidityPools.itemChangeInfo.is = true

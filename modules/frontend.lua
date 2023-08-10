@@ -54,8 +54,8 @@ function renderInit()
         monitor.write(loggedIn.username.." ")
         monitor.setTextColor(config.palette.footer.exitfg)
         monitor.write("Exit with \\"..config.command.." exit")
-        monitor.setCursorPos(w-#("Deposit at "..config.address)-1,h-1)
-        monitor.write("Deposit at "..config.address)
+        monitor.setCursorPos(w-#("Deposit at "..(config.kristName ~= nil and (config.kristName..".kst") or config.address))-1,h-1)
+        monitor.write("Deposit at "..(config.kristName ~= nil and (config.kristName..".kst") or config.address))
     else
         bigfont.writeOn(monitor, 1, "Start with: \\"..config.command.." start", 2,h-2)
     end

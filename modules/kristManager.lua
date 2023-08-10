@@ -69,7 +69,7 @@ local function initSocket()
 end
 
 local function mindTrans(trans)
-    return (trans.to == config.address) and (trans.meta.donate ~= "true")
+    return (trans.to == config.address) and (trans.meta.donate ~= "true") and ((config.kristName == nil) or (trans.sent_name == config.kristName))
 end
 
 local function returnKrist(trans,amount,message)
