@@ -34,6 +34,40 @@ local function saveCache(filename, data)
     fa.close()
 end
 
+local pepVerifier = {
+    storage = false,
+    ["wireless modem"] = false,
+    ["wired modem"] = false,
+    monitor = false
+}
+local papsi = peripheral.getNames()
+for k,v in ipairs(papsi) do
+    local t,t2 = peripheral.getType(v)
+    if t2 == "inventory" then
+        pepVerifier.storage = true
+    end
+    if t == "modem" then
+        if peripheral.wrap(v).isWireless() then
+            pepVerifier["wireless modem"] = true
+        else
+            pepVerifier["wired modem"] = true
+        end
+    end
+    if t == "monitor" then
+        pepVerifier.monitor = true
+    end
+end
+local tterm = false
+for k,v in pairs(pepVerifier) do
+    if v == false then
+        print("A(n) "..k.." is required to run this program")
+        tterm = true
+    end
+end
+if tterm then
+    return
+end
+
 if not fs.exists("config.conf") then
     print("Config file not found")
     return
