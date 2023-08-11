@@ -137,7 +137,8 @@ end
 function SolidityPools.loggedIn.saveUser()
     saveCache("users/"..SolidityPools.loggedIn.uuid..".cache", {
         balance = SolidityPools.loggedIn.balance,
-        transactions = SolidityPools.loggedIn.transactions
+        transactions = SolidityPools.loggedIn.transactions,
+        username = SolidityPools.loggedIn.username
     })
 end
 

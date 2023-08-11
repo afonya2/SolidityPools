@@ -242,6 +242,7 @@ Withdraws Krist from your account
                 table.remove(pdat.transactions, #pdat.transactions)
             end
             SolidityPools.kapi.makeTransaction(config.privateKey, args[3], tonumber(args[2]), "Withdrawed amount")
+            pdat.username = user
             saveCache("/users/"..data.user.uuid..".cache", pdat)
             if loggedIn.uuid == data.user.uuid then
                 loggedIn.loadUser()
@@ -356,6 +357,7 @@ Withdraws Krist from your account
                     while #pdat.transactions > 10 do
                         table.remove(pdat.transactions, #pdat.transactions)
                     end
+                    pdat.username = user
                     saveCache("/users/"..data.user.uuid..".cache", pdat)
                     loggedIn.loadUser()
                     SolidityPools.itemChangeInfo.is = true

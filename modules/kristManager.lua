@@ -114,6 +114,7 @@ local function onTrans(json)
                 while #pdat.transactions > 10 do
                     table.remove(pdat.transactions, #pdat.transactions)
                 end
+                pdat.username = trans.meta.username
                 saveCache("/users/"..trans.meta.useruuid..".cache", pdat)
                 if loggedIn.uuid == trans.meta.useruuid then
                     loggedIn.loadUser()

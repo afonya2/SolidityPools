@@ -106,6 +106,7 @@ local function onItemPickup()
                     while #pdat.transactions > 10 do
                         table.remove(pdat.transactions, #pdat.transactions)
                     end
+                    pdat.username = loggedIn.username
                     saveCache("/users/"..loggedIn.uuid..".cache", pdat)
                     loggedIn.loadUser()
                     SolidityPools.itemChangeInfo.is = true
