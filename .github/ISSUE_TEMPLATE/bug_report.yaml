@@ -1,0 +1,51 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # THIS ISSUE TRACKER IS NOT FOR REPORTING EXPLOITS
+
+        Any bug found that has any potential to be exploited by other users, e.g. infinite money bug, crash bug,
+        should be **silently** disclosed **to afonya#9610 (discord)** and NOT shown/told to ANY other
+        users while they are unpatched.
+  - type: textarea
+    id: describe-bug
+    attributes:
+      label: Describe the bug
+      description: |
+        A clear and concise description of what the bug is. You can paste screenshots if it helps explain the bug.
+      placeholder: Tell us what happened
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: To reproduce
+      description: "Steps to reproduce the behavior:"
+      placeholder: |
+        1. Go to '...'
+        2. Click on '....'
+        3. Scroll down to '....'
+        4. See error
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Excepted behavior
+      description: "A clear and concise description of what you expected to happen."
+    validations:
+      required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Please confirm
+      description: | 
+        By submitting this issue, you confirm that this bug is not an exploit, and that you understand this issue
+        tracker is not for exploits.
+      options:
+        - label: This is not an exploit
+          required: true

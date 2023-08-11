@@ -1,0 +1,41 @@
+name: Bug Report
+description: File a bug report
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        # THIS ISSUE TRACKER IS ONLY FOR ASKING FEATURES INTO THE SYSTEM AND NOT INTO A SPECIFIC SHOP
+
+        If your feature is for a specific shop then ask the shop owner
+  - type: textarea
+    id: feature-problem
+    attributes:
+      label: Is your feature request related to a problem?
+      description: |
+        A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+      placeholder: Tell us your problem
+    validations:
+      required: false
+  - type: textarea
+    id: describe-idea
+    attributes:
+      label: Describe the solution you'd like
+      description: A clear and concise description of what you want to happen. You can paste screenshots if it helps explain the feature.
+      placeholder: |
+        1. Go to '...'
+        2. Do this '...'
+        3. Do that '...'
+    validations:
+      required: true
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Please confirm
+      description: | 
+        By submitting this issue, you confirm that this is a feature request for the
+        system and not for a specific shop
+      options:
+        - label: This is a feature request
+          required: true
