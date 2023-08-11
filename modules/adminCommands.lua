@@ -76,6 +76,42 @@ Unbans a player from the shop
 Forcefully ends the current session
         ]]
         chatbox.tell(user, helptxt, config.shopname, nil, "markdown")
+    elseif args[2] == "ban" then
+        if (args[3] == nil) or (args[4] == nil) then
+            chatbox.tell(user, "&cUsage \\"..config.command.." admin ban <username> <reason>", config.shopname, nil, "format")
+            return
+        end
+        if not fs.exists("/bans.cache") then
+            saveCache("/bans.cache", {})
+        end
+        local bans = loadCache("/bans.cache")
+        if bans[args[3]:lower()] ~= nil then
+            chatbox.tell(user, "&cThis user is already banned", config.shopname, nil, "format")
+            return
+        end
+        local banmsg = ""
+        for i=4,#args do
+            banmsg = banmsg..args[i].." "
+        end
+        bans[args[3]:lower()] = banmsg
+        saveCache("/bans.cache", bans)
+        chatbox.tell(user, "&2Success! &aYou banned &7"..args[3]:lower(), config.shopname, nil, "format")
+    elseif args[2] == "unban" then
+        if (args[3] == nil) then
+            chatbox.tell(user, "&cUsage \\"..config.command.." admin unban <username>", config.shopname, nil, "format")
+            return
+        end
+        if not fs.exists("/bans.cache") then
+            saveCache("/bans.cache", {})
+        end
+        local bans = loadCache("/bans.cache")
+        if bans[args[3]:lower()] == nil then
+            chatbox.tell(user, "&cThis user is not banned", config.shopname, nil, "format")
+            return
+        end
+        bans[args[3]:lower()] = nil
+        saveCache("/bans.cache", bans)
+        chatbox.tell(user, "&2Success! &aYou unbanned &7"..args[3]:lower(), config.shopname, nil, "format")
     elseif args[2] == "kick" then
         if not loggedIn.is then
             chatbox.tell(user, "&cCurrently no session is running", config.shopname, nil, "format")

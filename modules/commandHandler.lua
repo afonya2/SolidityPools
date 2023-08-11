@@ -66,6 +66,13 @@ local function isPlayerClose(name)
 end
 
 local function onCommand(user, args, data)
+    if fs.exists("/bans.cache") then
+        local bans = loadCache("/bans.cache")
+        if (bans[user:lower()] ~= nil) and (user ~= config.owner) then
+            chatbox.tell(user, "&cYou are banned from &7"..config.shopname.."&c, reason: &7"..bans[user:lower()], config.shopname, nil, "format")
+            return
+        end
+    end
     if args[1] == "help" then
         local helptxt = [[
 `\]]..config.command..[[ help`
