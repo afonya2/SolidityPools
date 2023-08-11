@@ -38,6 +38,10 @@ if turtle == nil then
     print("Computer must be a turtle")
     return
 end
+if chatbox == nil then
+    print("Chatbox must be registered")
+    return
+end
 local pepVerifier = {
     storage = false,
     ["wireless modem"] = false,
