@@ -34,6 +34,10 @@ local function saveCache(filename, data)
     fa.close()
 end
 
+if turtle == nil then
+    print("Computer must be a turtle")
+    return
+end
 local pepVerifier = {
     storage = false,
     ["wireless modem"] = false,
