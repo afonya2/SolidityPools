@@ -465,6 +465,7 @@ Withdraws Krist from your account
         else
             chatbox.tell(user, "&cCurrently you are not in a session", config.shopname, nil, "format")
         end
+    elseif args[1] == "admin" then
     else
         chatbox.tell(user, "&cInvalid command, try \\"..config.command.." help", config.shopname, nil, "format")
     end
