@@ -42,6 +42,7 @@ local pepVerifier = {
     storage = false,
     ["wireless modem"] = false,
     ["wired modem"] = false,
+    ["manipulator with entity sensor"] = false,
     monitor = false
 }
 local papsi = peripheral.getNames()
@@ -59,6 +60,9 @@ for k,v in ipairs(papsi) do
     end
     if t == "monitor" then
         pepVerifier.monitor = true
+    end
+    if (t == "manipulator") and (peripheral.wrap(v).sense() ~= nil) then
+        pepVerifier["manipulator with entity sensor"] = true
     end
 end
 local tterm = false
