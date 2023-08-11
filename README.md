@@ -1,9 +1,9 @@
 # SolidityPools
 Solidity shop system for CC
 # Screenshots
-![image](https://github.com/afonya2/SolidityPools/assets/64413731/22682677-e784-4e5c-8c1a-d746508bb512)
-![image](https://github.com/afonya2/SolidityPools/assets/64413731/39d797c0-1482-4d99-a6f7-50cb0fee02f0)
-![image](https://github.com/afonya2/SolidityPools/assets/64413731/02909eae-1c5d-4bcd-ab64-1f3aea1b1ea4)
+![image](https://github.com/afonya2/SolidityPools/assets/64413731/d48d33dc-28f5-4471-8dc8-96f7b4fd7e53)
+![image](https://github.com/afonya2/SolidityPools/assets/64413731/5483f40d-808a-4245-9e8a-ad71320e3f64)
+![image](https://github.com/afonya2/SolidityPools/assets/64413731/46bb6a96-7501-4696-b407-236b62f036ae)
 # How to install?
 Run the following command `wget run https://github.com/afonya2/SolidityPools/raw/main/installer.lua`
 # How to modify the config?
