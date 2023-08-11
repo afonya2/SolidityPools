@@ -107,6 +107,12 @@ local function onItemPickup()
                         table.remove(pdat.transactions, #pdat.transactions)
                     end
                     pdat.username = loggedIn.username
+                    loggedIn.itmsSold = loggedIn.itmsSold + coant
+                    loggedIn.moneyGained = loggedIn.moneyGained + worthMoney
+                    if loggedIn.itemTransactions[vv.name] == nil then
+                        loggedIn.itemTransactions[vv.name] = 0
+                    end
+                    loggedIn.itemTransactions[vv.name] = loggedIn.itemTransactions[vv.name] - coant
                     saveCache("/users/"..loggedIn.uuid..".cache", pdat)
                     loggedIn.loadUser()
                     SolidityPools.itemChangeInfo.is = true
@@ -121,17 +127,21 @@ local function onItemPickup()
                     if config.webhook then
                         local emb = dw.createEmbed()
                             :setAuthor("Solidity Pools")
-                            :setTitle("Item sell")
+                            :setTitle("Item Sold")
                             :setColor(3302600)
                             :addField("User: ", loggedIn.username.." (`"..loggedIn.uuid.."`)",true)
-                            :addField("New balance: ", tostring(math.floor(pdat.balance*1000)/1000),true)
+                            :addField("Balance: ", tostring(math.floor(loggedIn.balance*1000)/1000),true)
                             :addField("-","-")
-                            :addField("Item name: ", vv.name,true)
-                            :addField("Count: ", coant,true)
+                            :addField("Item's sold: ", tostring(math.floor(loggedIn.itmsSold*1000)/1000),true)
+                            :addField("Item's bought: ", tostring(math.floor(loggedIn.itmsBought*1000)/1000),true)
+                            :addField("Money gained/spent: ", tostring(math.floor(loggedIn.moneyGained*1000)/1000),true)
+                            :addField("-","-")
+                            :addField("Item name: ", vv.name, true)
+                            :addField("Count: ", tostring(coant), true)
                             :addField("Worth: ", tostring(math.floor(worthMoney*1000)/1000),true)
                             :setTimestamp()
                             :setFooter("SolidityPools v"..SolidityPools.version)
-                        dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+                        dw.editMessage(config.webhook_url, loggedIn.msgId, "", {emb.sendable()})
                     end
                 else
                     turtle.drop()

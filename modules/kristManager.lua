@@ -106,7 +106,7 @@ local function onTrans(json)
                 local pdat = loadCache("/users/"..trans.meta.useruuid..".cache")
                 pdat.balance = pdat.balance + trans.value
                 table.insert(pdat.transactions, 1, {
-                    from = trans.from,
+                    from = (trans.meta["return"] and trans.meta["return"] or trans.from),
                     to = "balance",
                     value = trans.value,
                     ["type"] = "deposit"
@@ -128,7 +128,7 @@ local function onTrans(json)
                         :setAuthor("Solidity Pools")
                         :setTitle("Deposit")
                         :setColor(3328100)
-                        :addField("From: ", trans.from,true)
+                        :addField("From: ", "`"..(trans.meta["return"] and trans.meta["return"] or trans.from).."`",true)
                         :addField("Value: ", tostring(trans.value),true)
                         :addField("-","-")
                         :addField("Metadata: ", "`"..trans.metadata.."`",true)

@@ -102,7 +102,12 @@ _G.SolidityPools = {
         uuid = "",
         balance = 0,
         transactions = {},
-        timeout = 0
+        timeout = 0,
+        msgId = "",
+        itmsBought = 0,
+        itmsSold = 0,
+        moneyGained = 0,
+        itemTransactions = {}
     },
     monitor = {
         id = peripheral.getName(monitor),

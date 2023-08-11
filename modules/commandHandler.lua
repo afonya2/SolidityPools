@@ -100,9 +100,29 @@ Withdraws Krist from your account
             loggedIn.username = user:lower()
             loggedIn.uuid = data.user.uuid
             loggedIn.timeout = os.clock()
+            loggedIn.itmsBought = 0
+            loggedIn.itmsSold = 0
+            loggedIn.moneyGained = 0
+            loggedIn.itemTransactions = {}
             loggedIn.loadUser()
             if not fs.exists("/users/"..loggedIn.uuid..".cache") then
                 loggedIn.saveUser()
+            end
+            if config.webhook then
+                local emb = dw.createEmbed()
+                    :setAuthor("Solidity Pools")
+                    :setTitle("Session start")
+                    :setColor(3302600)
+                    :addField("User: ", loggedIn.username.." (`"..loggedIn.uuid.."`)",true)
+                    :addField("Balance: ", tostring(math.floor(loggedIn.balance*1000)/1000),true)
+                    :addField("-","-")
+                    :addField("Item's sold: ", tostring(math.floor(loggedIn.itmsSold*1000)/1000),true)
+                    :addField("Item's bought: ", tostring(math.floor(loggedIn.itmsBought*1000)/1000),true)
+                    :addField("Money gained/spent: ", tostring(math.floor(loggedIn.moneyGained*1000)/1000),true)
+                    :setTimestamp()
+                    :setFooter("SolidityPools v"..SolidityPools.version)
+                local dms = dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+                loggedIn.msgId = dms.id
             end
             os.queueEvent("sp_rerender")
         else
@@ -255,7 +275,7 @@ Withdraws Krist from your account
                     :setTitle("Withdraw")
                     :setColor(3328100)
                     :addField("User: ", user.." (`"..data.user.uuid.."`)",true)
-                    :addField("To: ", args[3],true)
+                    :addField("To: ", "`"..args[3].."`",true)
                     :addField("Value: ", args[2],true)
                     :addField("New balance: ", tostring(math.floor(pdat.balance*1000)/1000),true)
                     :setTimestamp()
@@ -358,6 +378,12 @@ Withdraws Krist from your account
                         table.remove(pdat.transactions, #pdat.transactions)
                     end
                     pdat.username = user
+                    loggedIn.itmsBought = loggedIn.itmsBought + tonumber(args[3])
+                    loggedIn.moneyGained = loggedIn.moneyGained - costMoney
+                    if loggedIn.itemTransactions[vv.name] == nil then
+                        loggedIn.itemTransactions[vv.name] = 0
+                    end
+                    loggedIn.itemTransactions[vv.name] = loggedIn.itemTransactions[vv.name] + tonumber(args[3])
                     saveCache("/users/"..data.user.uuid..".cache", pdat)
                     loggedIn.loadUser()
                     SolidityPools.itemChangeInfo.is = true
@@ -372,17 +398,21 @@ Withdraws Krist from your account
                     if config.webhook then
                         local emb = dw.createEmbed()
                             :setAuthor("Solidity Pools")
-                            :setTitle("Item purchase")
+                            :setTitle("Item bought")
                             :setColor(3302600)
-                            :addField("User: ", user.." (`"..data.user.uuid.."`)",true)
-                            :addField("New balance: ", tostring(math.floor(pdat.balance*1000)/1000),true)
+                            :addField("User: ", loggedIn.username.." (`"..loggedIn.uuid.."`)",true)
+                            :addField("Balance: ", tostring(math.floor(loggedIn.balance*1000)/1000),true)
                             :addField("-","-")
-                            :addField("Item name: ", vv.name,true)
-                            :addField("Count: ", args[3],true)
+                            :addField("Item's sold: ", tostring(math.floor(loggedIn.itmsSold*1000)/1000),true)
+                            :addField("Item's bought: ", tostring(math.floor(loggedIn.itmsBought*1000)/1000),true)
+                            :addField("Money gained/spent: ", tostring(math.floor(loggedIn.moneyGained*1000)/1000),true)
+                            :addField("-","-")
+                            :addField("Item name: ", vv.name, true)
+                            :addField("Count: ", args[3], true)
                             :addField("Cost: ", tostring(math.floor(costMoney*1000)/1000),true)
                             :setTimestamp()
                             :setFooter("SolidityPools v"..SolidityPools.version)
-                        dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+                        dw.editMessage(config.webhook_url, loggedIn.msgId, "", {emb.sendable()})
                     end
                     return
                 end
@@ -393,10 +423,43 @@ Withdraws Krist from your account
         if (loggedIn.is) and (loggedIn.uuid == data.user.uuid) then
             loggedIn.saveUser()
             chatbox.tell(user, "&aYour remaining &e"..(math.floor(loggedIn.balance*1000)/1000).."kst &awill be stored for your next purchase", config.shopname, nil, "format")
+            if config.webhook then
+                local emb = dw.createEmbed()
+                    :setAuthor("Solidity Pools")
+                    :setTitle("Session ended")
+                    :setColor(3302600)
+                    :addField("User: ", loggedIn.username.." (`"..loggedIn.uuid.."`)",true)
+                    :addField("Balance: ", tostring(math.floor(loggedIn.balance*1000)/1000),true)
+                    :addField("-","-")
+                    :addField("Item's sold: ", tostring(math.floor(loggedIn.itmsSold*1000)/1000),true)
+                    :addField("Item's bought: ", tostring(math.floor(loggedIn.itmsBought*1000)/1000),true)
+                    :addField("Money gained/spent: ", tostring(math.floor(loggedIn.moneyGained*1000)/1000),true)
+                    :setTimestamp()
+                    :setFooter("SolidityPools v"..SolidityPools.version)
+                dw.editMessage(config.webhook_url, loggedIn.msgId, "", {emb.sendable()})
+                local emb2 = dw.createEmbed()
+                    :setAuthor("Solidity Pools")
+                    :setTitle("Session details")
+                    :setColor(3302600)
+                    :addField("User: ", loggedIn.username.." (`"..loggedIn.uuid.."`)",true)
+                    :addField("Balance: ", tostring(math.floor(loggedIn.balance*1000)/1000),true)
+                    :addField("-","-")
+                    :setTimestamp()
+                    :setFooter("SolidityPools v"..SolidityPools.version)
+                for k,v in pairs(loggedIn.itemTransactions) do
+                    emb2:addField(k, tostring(v), true)
+                end
+                dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb2.sendable()})
+            end
             loggedIn.is = false
             loggedIn.username = ""
             loggedIn.uuid = ""
             loggedIn.timeout = 0
+            loggedIn.itmsBought = 0
+            loggedIn.itmsSold = 0
+            loggedIn.moneyGained = 0
+            loggedIn.msgId = ""
+            loggedIn.itemTransactions = {}
             loggedIn.loadUser()
             os.queueEvent("sp_rerender")
         else
