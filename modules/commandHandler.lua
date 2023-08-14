@@ -313,6 +313,8 @@ Withdraws Krist from your account
 &aTrading fees: &7]]..config.tradingFees..[[%
 &aBalance: &e]]..SolidityPools.kapi.getBalance(config.address)..[[kst
 &aStorage: &7]]..stor.used.."/"..stor.total.." ("..(math.floor(stor.used/stor.total*100*1000)/1000).."%)"..[[
+
+&aVersion: &7]]..SolidityPools.version..[[
             ]]
             chatbox.tell(user, smsg, config.shopname, nil, "format")
         else

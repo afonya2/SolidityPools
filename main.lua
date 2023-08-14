@@ -142,7 +142,7 @@ end
 _G.SolidityPools = {
     config = config,
     items = items,
-    version = "1.0",
+    version = "1.1",
     loggedIn = {
         is = false,
         username = "",
