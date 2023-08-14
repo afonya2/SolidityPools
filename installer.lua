@@ -21,6 +21,7 @@ local files = {
 print("Scanning for old config files...")
 local cfgfiles = {
     "config.conf",
+    "items/Ores.conf"
 }
 local cfgcache = {}
 print("Do you want to keep your config files? (y/n)")
