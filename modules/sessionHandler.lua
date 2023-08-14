@@ -112,7 +112,7 @@ local function onItemPickup()
                     if loggedIn.itemTransactions[vv.name] == nil then
                         loggedIn.itemTransactions[vv.name] = 0
                     end
-                    loggedIn.itemTransactions[vv.name] = loggedIn.itemTransactions[vv.name] - coant
+                    loggedIn.itemTransactions[vv.name] = loggedIn.itemTransactions[vv.name] + coant
                     saveCache("/users/"..loggedIn.uuid..".cache", pdat)
                     loggedIn.loadUser()
                     SolidityPools.itemChangeInfo.is = true
@@ -195,6 +195,7 @@ function sessionHandler()
                         local emb2 = dw.createEmbed()
                             :setAuthor("Solidity Pools")
                             :setTitle("Session details")
+                            :setDescription("Item changes in the storage")
                             :setColor(3302600)
                             :addField("User: ", loggedIn.username.." (`"..loggedIn.uuid.."`)",true)
                             :addField("Balance: ", tostring(math.floor(loggedIn.balance*1000)/1000),true)
@@ -202,7 +203,9 @@ function sessionHandler()
                             :setTimestamp()
                             :setFooter("SolidityPools v"..SolidityPools.version)
                         for k,v in pairs(loggedIn.itemTransactions) do
-                            emb2:addField(k, tostring(v), true)
+                            if v ~= 0 then
+                                emb2:addField(k, tostring(v), true)
+                            end
                         end
                         dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb2.sendable()})
                     end
@@ -245,6 +248,7 @@ function sessionHandler()
                         local emb2 = dw.createEmbed()
                             :setAuthor("Solidity Pools")
                             :setTitle("Session details")
+                            :setDescription("Item changes in the storage")
                             :setColor(3302600)
                             :addField("User: ", loggedIn.username.." (`"..loggedIn.uuid.."`)",true)
                             :addField("Balance: ", tostring(math.floor(loggedIn.balance*1000)/1000),true)
@@ -252,7 +256,9 @@ function sessionHandler()
                             :setTimestamp()
                             :setFooter("SolidityPools v"..SolidityPools.version)
                         for k,v in pairs(loggedIn.itemTransactions) do
-                            emb2:addField(k, tostring(v), true)
+                            if v ~= 0 then
+                                emb2:addField(k, tostring(v), true)
+                            end
                         end
                         dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb2.sendable()})
                     end
