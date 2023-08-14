@@ -54,15 +54,17 @@ function api.parseMeta(meta)
     local a = mysplit(meta, ";")
     for k,v in ipairs(a) do
         local b = mysplit(v, "=")
-        if b[2] ~= nil then
-            out[b[1]] = b[2]
-        else
-            -- if matches the format of a krist address with metaname (ie test@shop.kst), we get the metaname, aka the test
-            if(b[1]:match("^.+@.+%.kst$")) then
-                local c = mysplit(b[1], "@")
-                out["metaname"] = c[1]
+        if b[1] ~= nil then
+            if b[2] ~= nil then
+                out[b[1]] = b[2]
             else
-                out[b[1]] = true
+                -- if matches the format of a krist address with metaname (ie test@shop.kst), we get the metaname, aka the test
+                if(b[1]:match("^.+@.+%.kst$")) then
+                    local c = mysplit(b[1], "@")
+                    out["metaname"] = c[1]
+                else
+                    out[b[1]] = true
+                end
             end
         end
     end
