@@ -23,7 +23,7 @@ local function computeDP(item, count, sell)
             if item.count == 0 then
                 return mprice * count
             else
-                return (item.normalStock/(item.count+count-1))*mprice*count
+                return (item.normalStock/(item.count+count))*mprice*count
             end
         else
             return mprice * count
@@ -128,6 +128,9 @@ function shopsync()
     local mods = getWModem()
     if mods == nil then
         bsod("No wireless modem found")
+    end
+    while (not SolidityPools.pricesLoaded) or (not SolidityPools.countsLoaded) do
+        os.sleep(0)
     end
     os.sleep(math.random() * 15 + 15)
     sendShopsync()
