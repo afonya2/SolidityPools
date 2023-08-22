@@ -367,6 +367,11 @@ Withdraws Krist from your account
             chatbox.tell(user, "&cPlease wait a few seconds", config.shopname, nil, "format")
             return
         end
+        if SolidityPools.lockTurtleInv then
+            chatbox.tell(user, "&cPlease wait a few seconds", config.shopname, nil, "format")
+            return
+        end
+        SolidityPools.lockTurtleInv = true
         for k,v in pairs(items) do
             for kk,vv in ipairs(v) do
                 if vv.name:gsub(" ", ""):lower() == args[2]:lower() then
@@ -427,10 +432,12 @@ Withdraws Krist from your account
                             :setFooter("SolidityPools v"..SolidityPools.version)
                         dw.editMessage(config.webhook_url, loggedIn.msgId, "", {emb.sendable()})
                     end
+                    SolidityPools.lockTurtleInv = false
                     return
                 end
             end
         end
+        SolidityPools.lockTurtleInv = false
         chatbox.tell(user, "&cInvalid item", config.shopname, nil, "format")
     elseif args[1] == "exit" then
         if (loggedIn.is) and (loggedIn.uuid == data.user.uuid) then

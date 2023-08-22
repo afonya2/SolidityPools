@@ -83,6 +83,7 @@ local function getTargetStorage()
 end
 
 local function onItemPickup()
+    SolidityPools.lockTurtleInv = true
     for k,v in pairs(items) do
         for kk,vv in ipairs(v) do
             if BIL.isItemMatch("turtle", 1, turtle.getItemDetail(1), vv.query) then
@@ -93,8 +94,9 @@ local function onItemPickup()
                 if targetStorage ~= nil then
                     local tsw = peripheral.wrap(targetStorage)
                     local mod = peripheral.find("modem")
-                    local worthMoney = computeDP(vv, turtle.getItemCount(1), true)
                     local coant = turtle.getItemCount(1)
+                    local worthMoney = computeDP(vv, coant, true)
+                    tsw.pullItems(mod.getNameLocal(), 1)
                     local pdat = loadCache("/users/"..loggedIn.uuid..".cache")
                     pdat.balance = pdat.balance + worthMoney
                     table.insert(pdat.transactions, 1, {
@@ -120,7 +122,6 @@ local function onItemPickup()
                     SolidityPools.itemChangeInfo.pos = kk
                     SolidityPools.itemChangeInfo.mode = "sell"
                     SolidityPools.itemChangeInfo.time = os.clock()
-                    tsw.pullItems(mod.getNameLocal(), 1)
                     os.queueEvent("sp_rerender")
                     chatbox.tell(loggedIn.uuid, "&2Success! &aYou sold &7x"..coant.." "..vv.name.." &afor &e"..(math.floor(worthMoney*1000)/1000).."kst &7("..(math.floor(worthMoney/coant*1000)/1000).."kst/i)", config.shopname, nil, "format")
                     loggedIn.timeout = os.clock()
@@ -147,10 +148,12 @@ local function onItemPickup()
                     turtle.drop()
                     chatbox.tell(loggedIn.uuid, "&cOur storage is full, please try again later", config.shopname, nil, "format")
                 end
+                SolidityPools.lockTurtleInv = false
                 return
             end
         end
     end
+    SolidityPools.lockTurtleInv = false
     turtle.drop()
 end
 
@@ -163,7 +166,7 @@ function sessionHandler()
     itemChangeInfo = SolidityPools.itemChangeInfo
     local function itemPup()
         while true do
-            if ((config.mode == "both") or (config.mode == "sell")) and loggedIn.is and (not SolidityPools.itemChangeInfo.is) then
+            if ((config.mode == "both") or (config.mode == "sell")) and loggedIn.is and (not SolidityPools.itemChangeInfo.is) and (not SolidityPools.lockTurtleInv) then
                 local succ = turtle.suckUp()
                 if succ then
                     onItemPickup()

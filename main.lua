@@ -142,7 +142,7 @@ end
 _G.SolidityPools = {
     config = config,
     items = items,
-    version = "1.1",
+    version = "1.1.1",
     loggedIn = {
         is = false,
         username = "",
@@ -174,7 +174,8 @@ _G.SolidityPools = {
         pos = 0,
         mode = "",
         time = 0
-    }
+    },
+    lockTurtleInv = false
 }
 function SolidityPools.loggedIn.loadUser()
     if fs.exists("users/"..SolidityPools.loggedIn.uuid..".cache") then
