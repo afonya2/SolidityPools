@@ -11,6 +11,7 @@ body:
         Any bug found that has any potential to be exploited by other users, e.g. infinite money bug, crash bug,
         should be **silently** disclosed **to afonya#9610 (discord)** and NOT shown/told to ANY other
         users while they are unpatched.
+        If it is a real issue, then after the fix you are eligible for 10-20 KST bug bounty reward
   - type: textarea
     id: describe-bug
     attributes:
