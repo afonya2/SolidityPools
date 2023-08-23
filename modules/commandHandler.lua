@@ -379,10 +379,12 @@ Withdraws Krist from your account
                     local pdat = loadCache("/users/"..data.user.uuid..".cache")
                     if pdat.balance < costMoney then
                         chatbox.tell(user, "&cYou don't have enough funds to buy this amount", config.shopname, nil, "format")
+                        SolidityPools.lockTurtleInv = false
                         return
                     end
                     if vv.count < tonumber(args[3]) then
                         chatbox.tell(user, "&cNot enough items in the storage", config.shopname, nil, "format")
+                        SolidityPools.lockTurtleInv = false
                         return
                     end
                     pdat.balance = pdat.balance - costMoney

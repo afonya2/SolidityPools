@@ -102,44 +102,48 @@ local function onTrans(json)
         local trans = json.transaction
         trans.meta = kapi.parseMeta(trans.metadata)
         if mindTrans(trans) then
-            if fs.exists("/users/"..trans.meta.useruuid..".cache") then
-                local pdat = loadCache("/users/"..trans.meta.useruuid..".cache")
-                pdat.balance = pdat.balance + trans.value
-                table.insert(pdat.transactions, 1, {
-                    from = (trans.meta["return"] and trans.meta["return"] or trans.from),
-                    to = "balance",
-                    value = trans.value,
-                    ["type"] = "deposit"
-                })
-                while #pdat.transactions > 10 do
-                    table.remove(pdat.transactions, #pdat.transactions)
-                end
-                pdat.username = trans.meta.username
-                saveCache("/users/"..trans.meta.useruuid..".cache", pdat)
-                if loggedIn.uuid == trans.meta.useruuid then
-                    loggedIn.loadUser()
-                    os.queueEvent("sp_rerender")
-                end
-                if isUserOnline(trans.meta.useruuid) then
-                    chatbox.tell(trans.meta.useruuid,"&e"..trans.value.."kst &awas deposited into your account",config.shopname,nil,"format")
-                end
-                if config.webhook then
-                    local emb = dw.createEmbed()
-                        :setAuthor("Solidity Pools")
-                        :setTitle("Deposit")
-                        :setColor(3328100)
-                        :addField("From: ", "`"..(trans.meta["return"] and trans.meta["return"] or trans.from).."`",true)
-                        :addField("Value: ", tostring(trans.value),true)
-                        :addField("-","-")
-                        :addField("Metadata: ", "`"..trans.metadata.."`",true)
-                        :addField("User: ", trans.meta.username.." (`"..trans.meta.useruuid.."`)",true)
-                        :addField("New balance: ", tostring(math.floor(pdat.balance*1000)/1000),true)
-                        :setTimestamp()
-                        :setFooter("SolidityPools v"..SolidityPools.version)
-                    dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+            if trans.meta.useruuid ~= nil then
+                if fs.exists("/users/"..trans.meta.useruuid..".cache") then
+                    local pdat = loadCache("/users/"..trans.meta.useruuid..".cache")
+                    pdat.balance = pdat.balance + trans.value
+                    table.insert(pdat.transactions, 1, {
+                        from = (trans.meta["return"] and trans.meta["return"] or trans.from),
+                        to = "balance",
+                        value = trans.value,
+                        ["type"] = "deposit"
+                    })
+                    while #pdat.transactions > 10 do
+                        table.remove(pdat.transactions, #pdat.transactions)
+                    end
+                    pdat.username = trans.meta.username
+                    saveCache("/users/"..trans.meta.useruuid..".cache", pdat)
+                    if loggedIn.uuid == trans.meta.useruuid then
+                        loggedIn.loadUser()
+                        os.queueEvent("sp_rerender")
+                    end
+                    if isUserOnline(trans.meta.useruuid) then
+                        chatbox.tell(trans.meta.useruuid,"&e"..trans.value.."kst &awas deposited into your account",config.shopname,nil,"format")
+                    end
+                    if config.webhook then
+                        local emb = dw.createEmbed()
+                            :setAuthor("Solidity Pools")
+                            :setTitle("Deposit")
+                            :setColor(3328100)
+                            :addField("From: ", "`"..(trans.meta["return"] and trans.meta["return"] or trans.from).."`",true)
+                            :addField("Value: ", tostring(trans.value),true)
+                            :addField("-","-")
+                            :addField("Metadata: ", "`"..trans.metadata.."`",true)
+                            :addField("User: ", trans.meta.username.." (`"..trans.meta.useruuid.."`)",true)
+                            :addField("New balance: ", tostring(math.floor(pdat.balance*1000)/1000),true)
+                            :setTimestamp()
+                            :setFooter("SolidityPools v"..SolidityPools.version)
+                        dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+                    end
+                else
+                    returnKrist(trans,trans.value,"User doesn't exists")
                 end
             else
-                returnKrist(trans,trans.value,"User doesn't exists")
+                returnKrist(trans,trans.value,"You must pay from SC or you must specify useruuid in your meta")
             end
         end
     end

@@ -89,6 +89,8 @@ local function onItemPickup()
             if BIL.isItemMatch("turtle", 1, turtle.getItemDetail(1), vv.query) then
                 if not loggedIn.is then
                     turtle.drop()
+                    SolidityPools.lockTurtleInv = false
+                    return
                 end
                 local targetStorage = getTargetStorage()
                 if targetStorage ~= nil then
