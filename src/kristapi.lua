@@ -3,7 +3,7 @@
     Made by: afonya2@github
 ]]
 local api = {}
-local server = "https://krist.dev"
+local server = "https://kromer.reconnected.cc/"
 
 function api.getAddress(address)
     local requ = http.get(server.."/addresses/"..address)

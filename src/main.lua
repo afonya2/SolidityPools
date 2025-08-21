@@ -1,11 +1,5 @@
-local frontend = require("modules.frontend")
-local itemHelper = require("modules.itemHelper")
-local commandHandler = require("modules.commandHandler")
-local kristManager = require("modules.kristManager")
-local sessionHandler = require("modules.sessionHandler")
-local shopsync = require("modules.shopsync")
-local adminCommands = require("modules.adminCommands")
 local bigfont = require("bigfont")
+local sha = require("sha256")
 local dw = require("discordWebhook")
 local BIL = require("BIL")
 local kapi = require("kristapi")
@@ -19,18 +13,6 @@ end
 local function saveConfig(filename, data)
     local fa = fs.open(filename, "w")
     fa.write(textutils.serialise(data))
-    fa.close()
-end
-local function loadCache(filename)
-    local fa = fs.open(filename, "r")
-    local fi = fa.readAll()
-    fi = fi:gsub("SYSTEM CACHE, DO NOT EDIT!","")
-    fa.close()
-    return textutils.unserialise(fi)
-end
-local function saveCache(filename, data)
-    local fa = fs.open(filename, "w")
-    fa.write("SYSTEM CACHE, DO NOT EDIT!"..textutils.serialise(data))
     fa.close()
 end
 
@@ -85,19 +67,19 @@ if not fs.exists("config.conf") then
     return
 end
 local config = loadConfig("config.conf")
-local items = {}
+--[[local items = {}
 local idir = fs.list("items/")
 for k,v in ipairs(idir) do
     local itms = loadConfig("items/"..v)
     items[v:gsub(".conf","")] = itms
-end
+end]]
 local monitor = peripheral.find("monitor")
 monitor.setTextScale(0.5)
 monitor.setBackgroundColor(colors.black)
 monitor.setTextColor(colors.white)
 monitor.clear()
 
-function mysplit (inputstr, sep)
+local function mysplit (inputstr, sep)
     if sep == nil then
             sep = "%s"
     end
@@ -108,7 +90,7 @@ function mysplit (inputstr, sep)
     return t
 end
 
-function bsod(message)
+local function bsod(message)
     monitor.setBackgroundColor(colors.blue)
     monitor.setTextColor(colors.white)
     monitor.clear()
@@ -141,21 +123,8 @@ end
 
 _G.SolidityPools = {
     config = config,
-    items = items,
-    version = "1.1.2",
-    loggedIn = {
-        is = false,
-        username = "",
-        uuid = "",
-        balance = 0,
-        transactions = {},
-        timeout = 0,
-        msgId = "",
-        itmsBought = 0,
-        itmsSold = 0,
-        moneyGained = 0,
-        itemTransactions = {}
-    },
+    --items = items,
+    version = "2.0.0",
     monitor = {
         id = peripheral.getName(monitor),
         wrap = monitor
@@ -163,37 +132,10 @@ _G.SolidityPools = {
     bsod = bsod,
     dw = dw,
     bigfont = bigfont,
+    sha = sha,
     BIL = BIL,
     kapi = kapi,
-    pricesLoaded = false,
-    countsLoaded = false,
-    kristConnected = false,
-    itemChangeInfo = {
-        is = false,
-        category = "",
-        pos = 0,
-        mode = "",
-        time = 0
-    },
-    lockTurtleInv = false
 }
-function SolidityPools.loggedIn.loadUser()
-    if fs.exists("users/"..SolidityPools.loggedIn.uuid..".cache") then
-        local dat = loadCache("users/"..SolidityPools.loggedIn.uuid..".cache")
-        SolidityPools.loggedIn.balance = dat.balance
-        SolidityPools.loggedIn.transactions = dat.transactions
-    else
-        SolidityPools.loggedIn.balance = 0
-        SolidityPools.loggedIn.transactions = {}
-    end
-end
-function SolidityPools.loggedIn.saveUser()
-    saveCache("users/"..SolidityPools.loggedIn.uuid..".cache", {
-        balance = SolidityPools.loggedIn.balance,
-        transactions = SolidityPools.loggedIn.transactions,
-        username = SolidityPools.loggedIn.username
-    })
-end
 
 local function crash(err)
     if err ~= "Terminated" then
@@ -206,7 +148,7 @@ local function crash(err)
     end
 end
 
-parallel.waitForAny(function()
+--[[parallel.waitForAny(function()
     local ok,err = xpcall(itemHelper, crash)
 end,function()
     local ok,err = xpcall(frontend, crash)
@@ -220,4 +162,4 @@ end,function()
     local ok,err = xpcall(shopsync, crash)
 end,function()
     local ok,err = xpcall(adminCommands, adminCommands)
-end)
+end)]]
