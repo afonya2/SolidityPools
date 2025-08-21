@@ -66,6 +66,37 @@ local function renderItems()
     end
 end
 
+local function drawTable(monitor, x, y, w, h, data)
+    drawRect(monitor, x, y, w, h, SolidityPools.config.palette.cards.bg)
+    local colWidths = {}
+    for col, rows in pairs(data) do
+        colWidths[col] = 0
+        for _, row in ipairs(rows) do
+            colWidths[col] = math.max(colWidths[col], #row.text)
+        end
+    end
+    local totalWidth = 0
+    for _, width in pairs(colWidths) do
+        totalWidth = totalWidth + width
+    end
+
+    local startX = x
+    for col, rows in pairs(data) do
+        local colWidth = colWidths[col]
+        monitor.setCursorPos(startX, y)
+        monitor.setTextColor(SolidityPools.config.palette.cards.fg)
+        monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
+        monitor.write(col)
+        for i, row in ipairs(rows) do
+            monitor.setCursorPos(startX, y + i)
+            monitor.setTextColor(row.fg)
+            monitor.setBackgroundColor(row.bg)
+            monitor.write(row.text)
+        end
+        startX = startX + colWidth + 1
+    end
+end
+
 local function renderItemDetails()
     local monitor = SolidityPools.monitor.wrap
     local w,h = monitor.getSize()
@@ -81,6 +112,10 @@ local function renderItemDetails()
     monitor.setCursorPos(w-1, 7)
     monitor.setTextColor(colors.red)
     monitor.write("X")
+    drawTable(monitor, 4, 10, w-4, h-12, {
+        ["Sell"] = { {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "\16410"}, {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "test"} },
+        ["Buy"] = { {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "\16411"}, {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "test2"} }
+    })
 end
 
 local function render()
