@@ -1,7 +1,3 @@
---[[
-    Kristapi
-    Made by: afonya2@github
-]]
 local api = {}
 local server = "https://kromer.reconnected.cc/"
 

@@ -2,7 +2,8 @@ local bigfont = require("bigfont")
 local sha = require("sha256")
 local dw = require("discordWebhook")
 local BIL = require("BIL")
-local kapi = require("kristapi")
+local kapi = require("kromerapi")
+local frontend = require("modules.frontend")
 
 local function loadConfig(filename)
     local fa = fs.open(filename, "r")
@@ -67,12 +68,12 @@ if not fs.exists("config.conf") then
     return
 end
 local config = loadConfig("config.conf")
---[[local items = {}
+local items = {}
 local idir = fs.list("items/")
 for k,v in ipairs(idir) do
     local itms = loadConfig("items/"..v)
     items[v:gsub(".conf","")] = itms
-end]]
+end
 local monitor = peripheral.find("monitor")
 monitor.setTextScale(0.5)
 monitor.setBackgroundColor(colors.black)
@@ -123,8 +124,14 @@ end
 
 _G.SolidityPools = {
     config = config,
-    --items = items,
+    items = items,
     version = "2.0.0",
+    session = {
+        is = false,
+        uuid = "",
+        username = "",
+        balance = 0
+    },
     monitor = {
         id = peripheral.getName(monitor),
         wrap = monitor
@@ -148,18 +155,6 @@ local function crash(err)
     end
 end
 
---[[parallel.waitForAny(function()
-    local ok,err = xpcall(itemHelper, crash)
-end,function()
+parallel.waitForAny(function()
     local ok,err = xpcall(frontend, crash)
-end,function()
-    local ok,err = xpcall(commandHandler, crash)
-end,function()
-    local ok,err = xpcall(kristManager, crash)
-end,function()
-    local ok,err = xpcall(sessionHandler, crash)
-end,function()
-    local ok,err = xpcall(shopsync, crash)
-end,function()
-    local ok,err = xpcall(adminCommands, adminCommands)
-end)]]
+end)
