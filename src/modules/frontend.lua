@@ -68,34 +68,40 @@ end
 
 local function drawTable(monitor, x, y, w, h, data)
     drawRect(monitor, x, y, w, h, SolidityPools.config.palette.cards.bg)
-    local colWidths = {}
-    for col, rows in pairs(data) do
-        colWidths[col] = 0
-        for _, row in ipairs(rows) do
-            colWidths[col] = math.max(colWidths[col], #row.text)
-        end
+    local colCount = 0
+    for _ in pairs(data) do
+        colCount = colCount + 1
     end
-    local totalWidth = 0
-    for _, width in pairs(colWidths) do
-        totalWidth = totalWidth + width
-    end
+    if colCount == 0 then return end
+
+    local colWidth = math.floor(w / colCount)
+    local extra = w % colCount
 
     local startX = x
+    local colIndex = 0
     for col, rows in pairs(data) do
-        local colWidth = colWidths[col]
+        colIndex = colIndex + 1
+        local thisWidth = colWidth
+        if colIndex <= extra then
+            thisWidth = thisWidth + 1
+        end
+
         monitor.setCursorPos(startX, y)
         monitor.setTextColor(SolidityPools.config.palette.cards.fg)
         monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
-        monitor.write(col)
+        monitor.write(col:sub(1, thisWidth-1))
+
         for i, row in ipairs(rows) do
             monitor.setCursorPos(startX, y + i)
             monitor.setTextColor(row.fg)
             monitor.setBackgroundColor(row.bg)
-            monitor.write(row.text)
+            monitor.write(row.text:sub(1, thisWidth-1))
         end
-        startX = startX + colWidth + 1
+
+        startX = startX + thisWidth
     end
 end
+
 
 local function renderItemDetails()
     local monitor = SolidityPools.monitor.wrap
@@ -112,9 +118,9 @@ local function renderItemDetails()
     monitor.setCursorPos(w-1, 7)
     monitor.setTextColor(colors.red)
     monitor.write("X")
-    drawTable(monitor, 4, 10, w-4, h-12, {
+    drawTable(monitor, 3, 11, w-4, h-12, {
         ["Sell"] = { {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "\16410"}, {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "test"} },
-        ["Buy"] = { {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "\16411"}, {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "test2"} }
+        ["Buy"] = { {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "\16411"}, {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "testdahshjkdasjhkdashjkdashjhjadshjksdajkhsdajkdasjhkhsdahjdashjkdsakjhhdaksjhkjdasjksdahjkdshakjdjhaskhjdaskhjasdhkjhjkdashkjdsahkjahdskjs2"} }
     })
 end
 
