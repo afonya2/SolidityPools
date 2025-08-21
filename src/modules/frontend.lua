@@ -1,5 +1,6 @@
 local selectedCategory = nil
 local selectedItem = nil
+local hitboxes = {}
 
 local function drawRect(monitor,x,y,w,h,bg)
     monitor.setBackgroundColor(bg)
@@ -10,18 +11,18 @@ local function drawRect(monitor,x,y,w,h,bg)
     end
 end
 
-local function renderItem(monitor, item, x, y, longest, hidden)
+local function renderItem(monitor, k, item, x, y, longest, hidden)
     local w,h = monitor.getSize()
     local config = SolidityPools.config
-    -- TODO: replace 2nd one with actual price
+    -- TODO: replace 2nd and 3rd one with actual price
     if longest == nil then
         longest = math.max(#item.name, #("Sell:  10"), #("Buy:  11"))
     end
     if longest+3 > w then
         y = y + 1
     end
-    drawRect(monitor, x, y, longest + 2, 5, config.palette.items.bg)
     if not hidden then
+        drawRect(monitor, x, y, longest + 2, 5, config.palette.items.bg)
         monitor.setCursorPos(x + 1, y + 1)
         monitor.setTextColor(config.palette.items.fg)
         monitor.write(item.name)
@@ -31,6 +32,15 @@ local function renderItem(monitor, item, x, y, longest, hidden)
         monitor.setCursorPos(x + 1, y + 3)
         monitor.setTextColor(config.palette.items.buyFg)
         monitor.write("Buy: \16411")
+        table.insert(hitboxes, {
+            x = x,
+            y = y,
+            w = longest + 2,
+            h = 5,
+            onclick = function()
+                selectedItem = k
+            end
+        })
     end
     x = x + longest + 3
     return x, y, longest
@@ -42,7 +52,7 @@ local function renderItems()
     local y = 7
     local longest = 0
     for k, v in ipairs(SolidityPools.items[selectedCategory]) do
-        local nx, ny, nlongest = renderItem(monitor, v, x, y, nil, true)
+        local nx, ny, nlongest = renderItem(monitor, k, v, x, y, nil, true)
         x = nx
         y = ny
         longest = math.max(longest, nlongest)
@@ -50,10 +60,27 @@ local function renderItems()
     x = 2
     y = 7
     for k, v in ipairs(SolidityPools.items[selectedCategory]) do
-        local nx, ny = renderItem(monitor, v, x, y, longest, false)
+        local nx, ny = renderItem(monitor, k, v, x, y, longest, false)
         x = nx
         y = ny
     end
+end
+
+local function renderItemDetails()
+    local monitor = SolidityPools.monitor.wrap
+    local w,h = monitor.getSize()
+    local item = SolidityPools.items[selectedCategory][selectedItem]
+
+    drawRect(monitor, 2, 7, w-2, h-8, SolidityPools.config.palette.cards.bg)
+    monitor.setCursorPos(3, 8)
+    monitor.setTextColor(SolidityPools.config.palette.cards.fg)
+    monitor.write(item.name)
+    monitor.setCursorPos(3, 9)
+    monitor.setTextColor(SolidityPools.config.palette.cards.secondFg)
+    monitor.write("Aka. " .. table.concat(item.aliases, ", "))
+    monitor.setCursorPos(w-1, 7)
+    monitor.setTextColor(colors.red)
+    monitor.write("X")
 end
 
 local function render()
@@ -61,6 +88,7 @@ local function render()
     local config = SolidityPools.config
     local bigfont = SolidityPools.bigfont
     local w,h = monitor.getSize()
+    hitboxes = {}
 
     monitor.setTextScale(0.5)
     monitor.setBackgroundColor(config.palette.content.bg)
@@ -98,6 +126,10 @@ local function render()
         end
         monitor.setCursorPos(x, y)
         monitor.write("["..k.."]")
+        table.insert(hitboxes, { x = x, y = y, w = #k + 2, h = 1, onclick = function ()
+            selectedCategory = k
+            selectedItem = nil
+        end })
         x = x + #k + 3
     end
     monitor.setTextColor(config.palette.header.fg)
@@ -126,11 +158,30 @@ local function render()
     monitor.setCursorPos(w-#("SolidityPools v"..SolidityPools.version)+1, h)
     monitor.write("SolidityPools v"..SolidityPools.version)
 
-    renderItems()
+    if selectedItem == nil then
+        renderItems()
+    else
+        renderItemDetails()
+    end
 end
 
 local function frontend()
     render()
+    while true do
+        local event, p1, p2, p3 = os.pullEvent()
+        if event == "monitor_touch" then
+            local x, y = p2, p3
+            for k, hitbox in ipairs(hitboxes) do
+                if x >= hitbox.x and x < hitbox.x + hitbox.w and y >= hitbox.y and y < hitbox.y + hitbox.h then
+                    hitbox.onclick()
+                    break
+                end
+            end
+            render()
+        elseif event == "sp_render" then
+            render()
+        end
+    end
 end
 
 return frontend
