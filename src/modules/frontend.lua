@@ -68,10 +68,7 @@ end
 
 local function drawTable(monitor, x, y, w, h, data)
     drawRect(monitor, x, y, w, h, SolidityPools.config.palette.cards.bg)
-    local colCount = 0
-    for _ in pairs(data) do
-        colCount = colCount + 1
-    end
+    local colCount = #data
     if colCount == 0 then return end
 
     local colWidth = math.floor(w / colCount)
@@ -79,7 +76,7 @@ local function drawTable(monitor, x, y, w, h, data)
 
     local startX = x
     local colIndex = 0
-    for col, rows in pairs(data) do
+    for _, col in ipairs(data) do
         colIndex = colIndex + 1
         local thisWidth = colWidth
         if colIndex <= extra then
@@ -87,11 +84,11 @@ local function drawTable(monitor, x, y, w, h, data)
         end
 
         monitor.setCursorPos(startX, y)
-        monitor.setTextColor(SolidityPools.config.palette.cards.fg)
-        monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
-        monitor.write(col:sub(1, thisWidth-1))
+        monitor.setTextColor(col.fg)
+        monitor.setBackgroundColor(col.bg)
+        monitor.write(col.name:sub(1, thisWidth-1))
 
-        for i, row in ipairs(rows) do
+        for i, row in ipairs(col.rows) do
             monitor.setCursorPos(startX, y + i)
             monitor.setTextColor(row.fg)
             monitor.setBackgroundColor(row.bg)
@@ -118,9 +115,94 @@ local function renderItemDetails()
     monitor.setCursorPos(w-1, 7)
     monitor.setTextColor(colors.red)
     monitor.write("X")
-    drawTable(monitor, 3, 11, w-4, h-12, {
-        ["Sell"] = { {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "\16410"}, {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "test"} },
-        ["Buy"] = { {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "\16411"}, {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.fg, text = "testdahshjkdasjhkdashjkdashjhjadshjksdajkhsdajkdasjhkhsdahjdashjkdsakjhhdaksjhkjdasjksdahjkdshakjdjhaskhjdaskhjasdhkjhjkdashkjdsahkjahdskjs2"} }
+    table.insert(hitboxes, { x = w-1, y = 7, w = 1, h = 1, onclick = function ()
+        selectedItem = nil
+    end })
+
+    monitor.setCursorPos(3, 11)
+    monitor.setTextColor(SolidityPools.config.palette.cards.buyFg)
+    monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
+    monitor.write("Buy prices:")
+    drawTable(monitor, 3, 12, w-4, 2, {
+        {
+            name = "x1",
+            bg = SolidityPools.config.palette.cards.bg,
+            fg = SolidityPools.config.palette.cards.secondFg,
+            rows = {
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411"},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411/i"}
+            }
+        },
+        {
+            name = "x8",
+            bg = SolidityPools.config.palette.cards.bg,
+            fg = SolidityPools.config.palette.cards.secondFg,
+            rows = {
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411"},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411/i"}
+            }
+        },
+        {
+            name = "x64",
+            bg = SolidityPools.config.palette.cards.bg,
+            fg = SolidityPools.config.palette.cards.secondFg,
+            rows = {
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411"},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411/i"}
+            }
+        },
+        {
+            name = "x128",
+            bg = SolidityPools.config.palette.cards.bg,
+            fg = SolidityPools.config.palette.cards.secondFg,
+            rows = {
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411"},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411/i"}
+            }
+        },
+    })
+
+    monitor.setCursorPos(3, 16)
+    monitor.setTextColor(SolidityPools.config.palette.cards.sellFg)
+    monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
+    monitor.write("Sell prices:")
+    drawTable(monitor, 3, 17, w-4, 2, {
+        {
+            name = "x1",
+            bg = SolidityPools.config.palette.cards.bg,
+            fg = SolidityPools.config.palette.cards.secondFg,
+            rows = {
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410"},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410/i"}
+            }
+        },
+        {
+            name = "x8",
+            bg = SolidityPools.config.palette.cards.bg,
+            fg = SolidityPools.config.palette.cards.secondFg,
+            rows = {
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410"},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410/i"}
+            }
+        },
+        {
+            name = "x64",
+            bg = SolidityPools.config.palette.cards.bg,
+            fg = SolidityPools.config.palette.cards.secondFg,
+            rows = {
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410"},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410/i"}
+            }
+        },
+        {
+            name = "x128",
+            bg = SolidityPools.config.palette.cards.bg,
+            fg = SolidityPools.config.palette.cards.secondFg,
+            rows = {
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410"},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410/i"}
+            }
+        },
     })
 end
 
