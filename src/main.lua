@@ -4,6 +4,7 @@ local dw = require("discordWebhook")
 local BIL = require("BIL")
 local kapi = require("kromerapi")
 local frontend = require("modules.frontend")
+local itemManager = require("modules.itemManager")
 
 local function loadConfig(filename)
     local fa = fs.open(filename, "r")
@@ -118,6 +119,8 @@ local function bsod(message)
     end
 end
 
+local storage = BIL.createStorage()
+
 if (SolidityPools ~= nil) and (SolidityPools.ws ~= nil) then
     SolidityPools.ws.close()
 end
@@ -141,6 +144,7 @@ _G.SolidityPools = {
     bigfont = bigfont,
     sha = sha,
     BIL = BIL,
+    storage = storage,
     kapi = kapi,
     balance = 100000000
 }
@@ -158,4 +162,6 @@ end
 
 parallel.waitForAny(function()
     local ok,err = xpcall(frontend, crash)
+end,function()
+    local ok,err = xpcall(itemManager, crash)
 end)
