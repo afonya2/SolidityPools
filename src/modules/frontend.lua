@@ -1,6 +1,7 @@
 local selectedCategory = nil
 local selectedItem = nil
 local hitboxes = {}
+local utils = require("../utils")
 
 local function drawRect(monitor,x,y,w,h,bg)
     monitor.setBackgroundColor(bg)
@@ -123,14 +124,18 @@ local function renderItemDetails()
     monitor.setTextColor(SolidityPools.config.palette.cards.buyFg)
     monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
     monitor.write("Buy prices:")
+    local x1, x1i = utils.calculatePrice(item, 1, false)
+    local x8, x8i = utils.calculatePrice(item, 8, false)
+    local x64, x64i = utils.calculatePrice(item, 64, false)
+    local x128, x128i = utils.calculatePrice(item, 128, false)
     drawTable(monitor, 3, 12, w-4, 2, {
         {
             name = "x1",
             bg = SolidityPools.config.palette.cards.bg,
             fg = SolidityPools.config.palette.cards.secondFg,
             rows = {
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411"},
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411/i"}
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\164"..(x1/1000000)},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\164"..(x1i/1000000).."/i"}
             }
         },
         {
@@ -138,8 +143,8 @@ local function renderItemDetails()
             bg = SolidityPools.config.palette.cards.bg,
             fg = SolidityPools.config.palette.cards.secondFg,
             rows = {
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411"},
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411/i"}
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\164"..(x8/1000000)},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\164"..(x8i/1000000).."/i"}
             }
         },
         {
@@ -147,8 +152,8 @@ local function renderItemDetails()
             bg = SolidityPools.config.palette.cards.bg,
             fg = SolidityPools.config.palette.cards.secondFg,
             rows = {
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411"},
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411/i"}
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\164"..(x64/1000000)},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\164"..(x64i/1000000).."/i"}
             }
         },
         {
@@ -156,8 +161,8 @@ local function renderItemDetails()
             bg = SolidityPools.config.palette.cards.bg,
             fg = SolidityPools.config.palette.cards.secondFg,
             rows = {
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411"},
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\16411/i"}
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\164"..(x128/1000000)},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.buyFg, text = "\164"..(x128i/1000000).."/i"}
             }
         },
     })
@@ -166,14 +171,18 @@ local function renderItemDetails()
     monitor.setTextColor(SolidityPools.config.palette.cards.sellFg)
     monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
     monitor.write("Sell prices:")
+    x1, x1i = utils.calculatePrice(item, 1, true)
+    x8, x8i = utils.calculatePrice(item, 8, true)
+    x64, x64i = utils.calculatePrice(item, 64, true)
+    x128, x128i = utils.calculatePrice(item, 128, true)
     drawTable(monitor, 3, 17, w-4, 2, {
         {
             name = "x1",
             bg = SolidityPools.config.palette.cards.bg,
             fg = SolidityPools.config.palette.cards.secondFg,
             rows = {
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410"},
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410/i"}
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\164"..(x1/1000000)},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\164"..(x1i/1000000).."/i"}
             }
         },
         {
@@ -181,8 +190,8 @@ local function renderItemDetails()
             bg = SolidityPools.config.palette.cards.bg,
             fg = SolidityPools.config.palette.cards.secondFg,
             rows = {
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410"},
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410/i"}
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\164"..(x8/1000000)},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\164"..(x8i/1000000).."/i"}
             }
         },
         {
@@ -190,8 +199,8 @@ local function renderItemDetails()
             bg = SolidityPools.config.palette.cards.bg,
             fg = SolidityPools.config.palette.cards.secondFg,
             rows = {
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410"},
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410/i"}
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\164"..(x64/1000000)},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\164"..(x64i/1000000).."/i"}
             }
         },
         {
@@ -199,8 +208,8 @@ local function renderItemDetails()
             bg = SolidityPools.config.palette.cards.bg,
             fg = SolidityPools.config.palette.cards.secondFg,
             rows = {
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410"},
-                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\16410/i"}
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\164"..(x128/1000000)},
+                {bg = SolidityPools.config.palette.cards.bg, fg = SolidityPools.config.palette.cards.sellFg, text = "\164"..(x128i/1000000).."/i"}
             }
         },
     })

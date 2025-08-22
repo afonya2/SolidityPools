@@ -142,6 +142,7 @@ _G.SolidityPools = {
     sha = sha,
     BIL = BIL,
     kapi = kapi,
+    balance = 100000000
 }
 
 local function crash(err)
