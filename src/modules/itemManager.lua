@@ -1,5 +1,5 @@
 local function itemManager()
-    local lastRescan = os.clock()
+    local lastRescan = 0
     while true do
         if os.clock() - lastRescan > 20 then
             lastRescan = os.clock()

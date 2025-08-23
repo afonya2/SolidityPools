@@ -112,6 +112,40 @@ local function onCommand(user, args, data)
                 end
             end
         end
+    elseif args[1] == "price" then
+        if #args < 3 then
+            chatbox.tell(user, "&cPlease specify an item and an amount.", config.shopname, "format")
+            return
+        end
+        local amount = tonumber(args[3])
+        if (amount == nan) or (math.floor(amount) ~= amount) or (amount == 0) then
+            chatbox.tell(user, "&cPlease specify a valid amount.", config.shopname, "format")
+            return
+        end
+        local possible, item = utils.queryItem(args[2])
+        if item then
+            if amount < 0 then
+                local price, pricei = utils.calculatePrice(item, math.abs(amount), true)
+                chatbox.tell(user, "&cSelling &7x"..math.abs(amount).." "..item.name.." &cwould earn you &6" .. (price/1000000) .. "kro &7("..(pricei/1000000).."kro/i)", config.shopname, "format")
+            elseif amount > 0 then
+                local price, pricei = utils.calculatePrice(item, amount, false)
+                chatbox.tell(user, "&aBuying &7x"..amount.." "..item.name.." &awould cost you &6" .. (price/1000000) .. "kro &7("..(pricei/1000000).."kro/i)", config.shopname, "format")
+            end
+        else
+            local bestMatch = nil
+            local bestPerc = 0
+            for k, v in pairs(possible) do
+                if v > bestPerc then
+                    bestPerc = v
+                    bestMatch = k
+                end
+            end
+            if bestPerc > 50 then
+                chatbox.tell(user, "&cItem not found. &aDid you mean: &7" .. bestMatch .. "&a?", config.shopname, "format")
+            else
+                chatbox.tell(user, "&cItem not found.", config.shopname, "format") 
+            end
+        end
     else
         chatbox.tell(user, "&cUnknown command. Type &7\\"..config.command.." help &afor a list of commands.", config.shopname, "format")
     end
