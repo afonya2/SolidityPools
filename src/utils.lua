@@ -88,9 +88,9 @@ local function matchStr(a, b)
     return math.floor(match / len * 100)
 end
 
-local function queryItem(items, name)
+local function queryItem(name)
     local match = {}
-    for _, cat in pairs(items) do
+    for _, cat in pairs(SolidityPools.items) do
         for k,v in ipairs(cat) do
             local m = math.max(
                 matchStr(v.name:gsub(" ", ""):lower(), name:lower()),

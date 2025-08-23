@@ -75,15 +75,27 @@ local function onCommand(user, args, data)
 &aAddress: &7]]..config.address..[[
 
 &aTrading Fees: &7]]..config.tradingFees..[[%
-&aBalance: &7]]..(SolidityPools.balance/1000000)..[[
+&aBalance: &6]]..(SolidityPools.balance/1000000)..[[kro
 
 &aStorage: &7]]..strg.used..[[/]]..strg.all..[[ (]]..(math.floor(strg.used/strg.all*100*100)/100)..[[%)
 &aVersion: &7]]..SolidityPools.version
             chatbox.tell(user, text, config.shopname, "format")
         else
-            local possible, item = utils.queryItem(SolidityPools.items, args[2])
+            local possible, item = utils.queryItem(args[2])
             if item then
-                
+                local itemC = SolidityPools.storage.getItemCount(item.query)
+                local text = [[&aItem info:
+&aName: &7]]..item.name..[[
+
+&aAliases: &7]]..table.concat(item.aliases, ", ")..[[
+
+&aQuery: &7]]..item.query..[[
+
+&aAllocated items: &7]]..math.min(item.allocated, itemC)..[[
+
+&aAllocated money: &6]]..(math.min(item.allocatedMoney, SolidityPools.balance)/1000000)..[[kro
+&aCount: &7]]..itemC
+                chatbox.tell(user, text, config.shopname, "format")
             else
                 local bestMatch = nil
                 local bestPerc = 0
@@ -93,7 +105,7 @@ local function onCommand(user, args, data)
                         bestMatch = k
                     end
                 end
-                if bestPerc > 90 then
+                if bestPerc > 50 then
                     chatbox.tell(user, "&cItem not found. &aDid you mean: &7" .. bestMatch .. "&a?", config.shopname, "format")
                 else
                     chatbox.tell(user, "&cItem not found.", config.shopname, "format") 
@@ -101,7 +113,7 @@ local function onCommand(user, args, data)
             end
         end
     else
-        chatbox.tell(user, "&cUnknown command. Type `help` for a list of commands.", config.shopname, "format")
+        chatbox.tell(user, "&cUnknown command. Type &7\\"..config.command.." help &afor a list of commands.", config.shopname, "format")
     end
 end
 
