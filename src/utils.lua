@@ -1,3 +1,6 @@
+-- fix 1 item issues
+-- escrow the 5%
+-- calculate SPs balance by removing the debt
 local function calculatePrice(item, quantity, isSell)
     local itemAmount = math.min(item.allocated, item.count)
     local moneyAmount = math.floor(math.min(item.allocatedMoney, SolidityPools.balance))
@@ -38,6 +41,77 @@ local function calculatePrice(item, quantity, isSell)
     return math.floor(price), math.floor(price / quantity)
 end
 
+local function isPlayerClose(name)
+    local man = peripheral.find("manipulator")
+    for k,v in ipairs(man.sense()) do
+        if (v.key == "minecraft:player") and (v.name:lower() == name:lower()) then
+            return true
+        end
+    end
+    return false
+end
+
+local function loadUser(uuid)
+    if fs.exists("/users/"..uuid..".txt") then
+        local file = fs.open("/users/"..uuid..".txt", "r")
+        local data = textutils.unserialize(file.readAll())
+        file.close()
+        return data
+    else
+        return {
+            uuid = uuid,
+            name = "Unknown",
+            balance = 0,
+            isBanned = nil,
+            isApiBanned = nil,
+            apiKey = nil,
+            agreed = false
+        }
+    end
+end
+
+local function saveUser(uuid, data)
+    local file = fs.open("/users/"..uuid..".txt", "w")
+    file.write(textutils.serialize(data))
+    file.close()
+end
+
+local function matchStr(a, b)
+    local len = math.max(#a, #b)
+    if len == 0 then return 100 end
+    local match = 0
+    for i = 1, len do
+        if a:sub(i, i) == b:sub(i, i) then
+            match = match + 1
+        end
+    end
+    return math.floor(match / len * 100)
+end
+
+local function queryItem(items, name)
+    local match = {}
+    for _, cat in pairs(items) do
+        for k,v in ipairs(cat) do
+            local m = math.max(
+                matchStr(v.name:gsub(" ", ""):lower(), name:lower()),
+                matchStr(v.name:gsub(" ", "_"):lower(), name:lower())
+            )
+            for kk, alias in ipairs(v.aliases) do
+                m = math.max(m, matchStr(alias:lower(), name:lower()))
+            end
+            match[v.name:gsub(" ", ""):lower()] = m
+            if m == 100 then
+                return match, v
+            end
+        end
+    end
+    return match
+end
+
 return {
-    calculatePrice = calculatePrice
+    calculatePrice = calculatePrice,
+    isPlayerClose = isPlayerClose,
+    loadUser = loadUser,
+    saveUser = saveUser,
+    queryItem = queryItem
 }

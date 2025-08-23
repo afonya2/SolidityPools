@@ -10,6 +10,7 @@ local function itemManager()
                     SolidityPools.items[k][kk].count = count
                 end
             end
+            SolidityPools.itemsLoaded = true
         end
         os.sleep(0)
     end

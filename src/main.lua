@@ -5,6 +5,7 @@ local BIL = require("BIL")
 local kapi = require("kromerapi")
 local frontend = require("modules.frontend")
 local itemManager = require("modules.itemManager")
+local commandHandler = require("modules.commandHandler")
 
 local function loadConfig(filename)
     local fa = fs.open(filename, "r")
@@ -120,6 +121,7 @@ local function bsod(message)
 end
 
 local storage = BIL.createStorage()
+local x,y,z = gps.locate()
 
 if (SolidityPools ~= nil) and (SolidityPools.ws ~= nil) then
     SolidityPools.ws.close()
@@ -133,7 +135,8 @@ _G.SolidityPools = {
         is = false,
         uuid = "",
         username = "",
-        balance = 0
+        balance = 0,
+        lastActive = 0
     },
     monitor = {
         id = peripheral.getName(monitor),
@@ -146,7 +149,14 @@ _G.SolidityPools = {
     BIL = BIL,
     storage = storage,
     kapi = kapi,
-    balance = 100000000
+    itemsLoaded = false,
+    kromerConnected = true,
+    balance = 100000000,
+    location = {
+        x = x,
+        y = y,
+        z = z
+    }
 }
 
 local function crash(err)
@@ -164,4 +174,6 @@ parallel.waitForAny(function()
     local ok,err = xpcall(frontend, crash)
 end,function()
     local ok,err = xpcall(itemManager, crash)
+end,function()
+    local ok,err = xpcall(commandHandler, crash)
 end)
