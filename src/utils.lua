@@ -72,7 +72,13 @@ end
 
 local function saveUser(uuid, data)
     local file = fs.open("/users/"..uuid..".txt", "w")
-    file.write(textutils.serialize(data))
+    file.write(textutils.serialize(data, { allow_repetitions = true }))
+    file.close()
+end
+
+local function saveCategory(cat, data)
+    local file = fs.open("/items/"..cat..".conf", "w")
+    file.write(textutils.serialize(data, { allow_repetitions = true }))
     file.close()
 end
 
@@ -90,7 +96,7 @@ end
 
 local function queryItem(name)
     local match = {}
-    for _, cat in pairs(SolidityPools.items) do
+    for catk, cat in pairs(SolidityPools.items) do
         for k,v in ipairs(cat) do
             local m = math.max(
                 matchStr(v.name:gsub(" ", ""):lower(), name:lower()),
@@ -101,7 +107,7 @@ local function queryItem(name)
             end
             match[v.name:gsub(" ", ""):lower()] = m
             if m == 100 then
-                return match, v
+                return match, v, catk, k
             end
         end
     end
@@ -113,5 +119,6 @@ return {
     isPlayerClose = isPlayerClose,
     loadUser = loadUser,
     saveUser = saveUser,
-    queryItem = queryItem
+    queryItem = queryItem,
+    saveCategory = saveCategory
 }

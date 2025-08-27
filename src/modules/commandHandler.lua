@@ -1,18 +1,6 @@
 local utils = require("../utils")
 
-local helpText = [[Usage: `\]]..SolidityPools.config.command..[[ <command> [args...]`
-Available commands:
-- `help` - Display this message
-- `start` - Start a session
-- `exit/end` - End your session
-- `info [<item>]` - Display information about the shop or an item
-- `price <item> <amount>` - Display the price of an item
-- `arb <item> <price>` - Display the arbitrage opportunity for an item
-- `buy <item> <amount>` - Buy an item
-- `balance` - Display your current balance
-- `withdraw <amount>` - Withdraw an amount
-- `api (key) [<reset>]` - Display API information, your API key or reset it
-]]
+local helpText = ""
 
 local function onCommand(user, args, data)
     local config = SolidityPools.config
@@ -39,7 +27,7 @@ local function onCommand(user, args, data)
             chatbox.tell(user, "&aSession started.", config.shopname, "format")
             os.queueEvent("sp_render")
         else
-            chatbox.tell(user, "&aWelcome to "..config.shopname.."!\n&aPlease run &7\\"..config.command.." help &ato familiarize yourself with the commands.\nBy continuing you accept the &7Terms and Conditions &aof the shop.\n&aRun &7\\"..config.command.." agree &ato accept.", config.shopname, "format")
+            chatbox.tell(user, "&aWelcome to "..config.shopname.."!\n&aPlease run &7\\"..config.command.." help &ato familiarize yourself with the commands.\n&aTo buy items run &7\\"..config.command.." buy <item> <amount>&a.\n&cTo sell items drop them on top of the turtle.\n&aBy continuing you accept the &7Terms and Conditions &aof the shop.\n&aRun &7\\"..config.command.." agree &ato accept.", config.shopname, "format")
         end
     elseif args[1] == "agree" then
         if userData.agreed then
@@ -146,12 +134,87 @@ local function onCommand(user, args, data)
                 chatbox.tell(user, "&cItem not found.", config.shopname, "format") 
             end
         end
+    elseif args[1] == "buy" then
+        if #args < 3 then
+            chatbox.tell(user, "&cPlease specify an item and an amount.", config.shopname, "format")
+            return
+        end
+        local amount = tonumber(args[3])
+        if (amount == nan) or (math.floor(amount) ~= amount) or (amount < 1) then
+            chatbox.tell(user, "&cPlease specify a valid amount.", config.shopname, "format")
+            return
+        end
+        if (not SolidityPools.session.is) or (SolidityPools.session.uuid ~= data.user.uuid) then
+            chatbox.tell(user, "&cYou don't have an active session. &aRun &7\\"..config.command.." start &ato start one.", config.shopname, "format")
+            return
+        end
+        if SolidityPools.lockInv then
+            chatbox.tell(user, "&cPlease wait a few seconds.", config.shopname, "format")
+            return
+        end
+        local possible, item, cat, itemk = utils.queryItem(args[2])
+        if item then
+            if item.count < amount then
+                chatbox.tell(user, "&cThe shop doesn't have enough stock of that item.", config.shopname, "format")
+                return
+            end
+            local price, pricei = utils.calculatePrice(item, amount, false)
+            if SolidityPools.session.balance < price then
+                chatbox.tell(user, "&cYou don't have enough money for this purchase.", config.shopname, "format")
+                return
+            end
+            SolidityPools.lockInv = true
+            SolidityPools.session.balance = SolidityPools.session.balance - price
+            SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated - amount
+            SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + price
+            utils.saveCategory(cat, SolidityPools.items[cat])
+            userData.balance = SolidityPools.session.balance
+            utils.saveUser(data.user.uuid, userData)
+            os.queueEvent("sp_render")
+            chatbox.tell(user, "&aYou bought &7x"..amount.." "..item.name.." &afor &6"..(price/1000000).."kro &7("..(pricei/1000000).."kro/i)", config.shopname, "format")
+            SolidityPools.storage.exportItems("turtle", item.query, amount)
+            for i=1, 16 do
+                if turtle.getItemCount(i) > 0 then
+                    turtle.select(i)
+                    turtle.drop()
+                end
+            end
+            SolidityPools.lockInv = false
+        else
+            local bestMatch = nil
+            local bestPerc = 0
+            for k, v in pairs(possible) do
+                if v > bestPerc then
+                    bestPerc = v
+                    bestMatch = k
+                end
+            end
+            if bestPerc > 50 then
+                chatbox.tell(user, "&cItem not found. &aDid you mean: &7" .. bestMatch .. "&a?", config.shopname, "format")
+            else
+                chatbox.tell(user, "&cItem not found.", config.shopname, "format")
+            end
+        end
     else
-        chatbox.tell(user, "&cUnknown command. Type &7\\"..config.command.." help &afor a list of commands.", config.shopname, "format")
+        chatbox.tell(user, "&cUnknown command. &aType &7\\"..config.command.." help &afor a list of commands.", config.shopname, "format")
     end
 end
 
 local function commandHandler()
+    helpText = [[Usage: `\]]..SolidityPools.config.command..[[ <command> [args...]`
+Available commands:
+- `help` - Display this message
+- `start` - Start a session
+- `exit/end` - End your session
+- `info [<item>]` - Display information about the shop or an item
+- `price <item> <amount>` - Display the price of an item
+- `arb <item> <price>` - Display the arbitrage opportunity for an item
+- `buy <item> <amount>` - Buy an item
+- `balance` - Display your current balance
+- `withdraw <amount>` - Withdraw an amount
+- `api (key) [<reset>]` - Display API information, your API key or reset it
+- `tos` - Display the Terms and Conditions
+]]
     while true do
         local event, user, command, args, data = os.pullEvent("command")
         if command == SolidityPools.config.command then

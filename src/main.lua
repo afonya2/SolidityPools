@@ -151,12 +151,19 @@ _G.SolidityPools = {
     kapi = kapi,
     itemsLoaded = false,
     kromerConnected = true,
+    lockInv = false,
     balance = 100000000,
     location = {
         x = x,
         y = y,
         z = z
-    }
+    },
+    discordCache = {},
+    logDiscordMessage = function(msg)
+        if config.webhook then
+            table.insert(SolidityPools.discordCache, msg)
+        end
+    end
 }
 
 local function crash(err)
