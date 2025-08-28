@@ -16,8 +16,10 @@ local function renderItem(monitor, k, item, x, y, longest, hidden)
     local w,h = monitor.getSize()
     local config = SolidityPools.config
     -- TODO: replace 2nd and 3rd one with actual price
+    local x1, x1i = utils.calculatePrice(item, 1, false)
+    local sx1, sx1i = utils.calculatePrice(item, 1, true)
     if longest == nil then
-        longest = math.max(#item.name, #("Sell:  10"), #("Buy:  11"))
+        longest = math.max(#item.name, #("Sell:  "..(sx1/1000000)), #("Buy:  "..(x1/1000000)))
     end
     if longest+3 > w then
         y = y + 1
@@ -29,10 +31,10 @@ local function renderItem(monitor, k, item, x, y, longest, hidden)
         monitor.write(item.name)
         monitor.setCursorPos(x + 1, y + 2)
         monitor.setTextColor(config.palette.items.sellFg)
-        monitor.write("Sell: \16410")
+        monitor.write("Sell: \164" .. (sx1/1000000))
         monitor.setCursorPos(x + 1, y + 3)
         monitor.setTextColor(config.palette.items.buyFg)
-        monitor.write("Buy: \16411")
+        monitor.write("Buy: \164" .. (x1/1000000))
         table.insert(hitboxes, {
             x = x,
             y = y,
@@ -51,6 +53,9 @@ local function renderItems()
     local monitor = SolidityPools.monitor.wrap
     local x = 2
     local y = 7
+    if not SolidityPools.kromerConnected then
+        y = y + 1
+    end
     local longest = 0
     for k, v in ipairs(SolidityPools.items[selectedCategory]) do
         local nx, ny, nlongest = renderItem(monitor, k, v, x, y, nil, true)
@@ -60,6 +65,9 @@ local function renderItems()
     end
     x = 2
     y = 7
+    if not SolidityPools.kromerConnected then
+        y = y + 1
+    end
     for k, v in ipairs(SolidityPools.items[selectedCategory]) do
         local nx, ny = renderItem(monitor, k, v, x, y, longest, false)
         x = nx
@@ -106,21 +114,27 @@ local function renderItemDetails()
     local w,h = monitor.getSize()
     local item = SolidityPools.items[selectedCategory][selectedItem]
 
-    drawRect(monitor, 2, 7, w-2, h-8, SolidityPools.config.palette.cards.bg)
-    monitor.setCursorPos(3, 8)
+    local baseY = 8
+    if not SolidityPools.kromerConnected then
+        drawRect(monitor, 2, 8, w-2, h-9, SolidityPools.config.palette.cards.bg)
+        baseY = baseY + 1
+    else
+        drawRect(monitor, 2, 7, w-2, h-8, SolidityPools.config.palette.cards.bg)
+    end
+    monitor.setCursorPos(3, baseY)
     monitor.setTextColor(SolidityPools.config.palette.cards.fg)
     monitor.write(item.name)
-    monitor.setCursorPos(3, 9)
+    monitor.setCursorPos(3, baseY + 1)
     monitor.setTextColor(SolidityPools.config.palette.cards.secondFg)
     monitor.write("Aka. " .. table.concat(item.aliases, ", "))
-    monitor.setCursorPos(w-1, 7)
+    monitor.setCursorPos(w-1, baseY - 1)
     monitor.setTextColor(colors.red)
     monitor.write("X")
-    table.insert(hitboxes, { x = w-1, y = 7, w = 1, h = 1, onclick = function ()
+    table.insert(hitboxes, { x = w-1, y = baseY - 1, w = 1, h = 1, onclick = function ()
         selectedItem = nil
     end })
 
-    monitor.setCursorPos(3, 11)
+    monitor.setCursorPos(3, baseY + 3)
     monitor.setTextColor(SolidityPools.config.palette.cards.buyFg)
     monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
     monitor.write("Buy prices:")
@@ -128,7 +142,7 @@ local function renderItemDetails()
     local x8, x8i = utils.calculatePrice(item, 8, false)
     local x64, x64i = utils.calculatePrice(item, 64, false)
     local x128, x128i = utils.calculatePrice(item, 128, false)
-    drawTable(monitor, 3, 12, w-4, 2, {
+    drawTable(monitor, 3, baseY + 4, w-4, 2, {
         {
             name = "x1",
             bg = SolidityPools.config.palette.cards.bg,
@@ -167,7 +181,7 @@ local function renderItemDetails()
         },
     })
 
-    monitor.setCursorPos(3, 16)
+    monitor.setCursorPos(3, baseY + 8)
     monitor.setTextColor(SolidityPools.config.palette.cards.sellFg)
     monitor.setBackgroundColor(SolidityPools.config.palette.cards.bg)
     monitor.write("Sell prices:")
@@ -175,7 +189,7 @@ local function renderItemDetails()
     x8, x8i = utils.calculatePrice(item, 8, true)
     x64, x64i = utils.calculatePrice(item, 64, true)
     x128, x128i = utils.calculatePrice(item, 128, true)
-    drawTable(monitor, 3, 17, w-4, 2, {
+    drawTable(monitor, 3, baseY + 9, w-4, 2, {
         {
             name = "x1",
             bg = SolidityPools.config.palette.cards.bg,
@@ -277,6 +291,15 @@ local function render()
         monitor.setCursorPos(w-#("Login: \\"..config.command.." start")+1, 5)
         monitor.setTextColor(config.palette.menu.loginFg)
         monitor.write("Login: \\"..config.command.." start")
+    end
+
+    -- Draw the kromer warning
+    if not SolidityPools.kromerConnected then
+        monitor.setCursorPos(w/2-#("Warning: Kromer is not connected, depositting is temporarily disabled.")/2+1, 6)
+        monitor.setTextColor(colors.black)
+        monitor.setBackgroundColor(colors.yellow)
+        monitor.clearLine()
+        monitor.write("Warning: Kromer is not connected, depositting is temporarily disabled.")
     end
 
     -- Draw the footer
