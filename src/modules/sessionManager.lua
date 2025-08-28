@@ -44,6 +44,7 @@ local function onItemPickup()
         utils.saveUser(SolidityPools.session.uuid, userData)
         os.queueEvent("sp_render")
         chatbox.tell(SolidityPools.session.username, "&aYou sold &7x"..soldCount.." "..item.name.."&a for &6"..(price/1000000).."kro &7("..(pricei/1000000).."kro/i)", config.shopname, "format")
+        SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) sold `x" .. soldCount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)")
         if remainder > 0 then
             turtle.drop(remainder)
         end
@@ -75,6 +76,7 @@ local function sessionTimeout()
         if SolidityPools.session.is then
             if os.clock()-SolidityPools.session.lastActive > 60 then
                 chatbox.tell(SolidityPools.session.username, "&cYour session has timed out due to inactivity.", config.shopname, "format")
+                SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) timed out.")
                 SolidityPools.session.is = false
                 SolidityPools.session.uuid = ""
                 SolidityPools.session.username = ""
@@ -92,6 +94,7 @@ local function sessionTerminator()
         if SolidityPools.session.is then
             if not utils.isPlayerClose(SolidityPools.session.username) then
                 chatbox.tell(SolidityPools.session.username, "&cYour session has ended, because you moved too far away from the shop.", config.shopname, "format")
+                SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) moved too far away.")
                 SolidityPools.session.is = false
                 SolidityPools.session.uuid = ""
                 SolidityPools.session.username = ""

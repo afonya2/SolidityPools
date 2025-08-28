@@ -24,6 +24,7 @@ local function adminCommands(user, args, data, userData)
         end
         chatbox.tell(SolidityPools.session.username, "&cYour session have been terminated.", config.shopname, "format")
         chatbox.tell(user, "&aSession terminated.", config.shopname, "format")
+        SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) was kicked.")
         SolidityPools.session.is = false
         SolidityPools.session.uuid = ""
         SolidityPools.session.username = ""
@@ -48,6 +49,7 @@ local function adminCommands(user, args, data, userData)
         targetData.isBanned = reason
         utils.saveUser(targetUUID, targetData)
         chatbox.tell(user, "&aBanned user: &7" .. targetData.name .. " (&7" .. targetUUID .. ") &afor reason: &7" .. reason, config.shopname, "format")
+        SolidityPools.logDiscordMessage("User: `" .. targetData.name:lower() .. "` (`" .. targetUUID .. "`) was banned for: `" .. reason.."`")
     elseif args[2] == "unban" then
         if #args < 3 then
             chatbox.tell(user, "&cPlease specify a user.", config.shopname, "format")
@@ -66,6 +68,7 @@ local function adminCommands(user, args, data, userData)
         targetData.isBanned = nil
         utils.saveUser(targetUUID, targetData)
         chatbox.tell(user, "&aUnbanned user: &7" .. targetData.name .. " (&7" .. targetUUID .. ")", config.shopname, "format")
+        SolidityPools.logDiscordMessage("User: `" .. targetData.name:lower() .. "` (`" .. targetUUID .. "`) was unbanned")
     elseif args[2] == "apiban" then
         if #args < 4 then
             chatbox.tell(user, "&cPlease specify a user and a reason.", config.shopname, "format")
@@ -85,6 +88,7 @@ local function adminCommands(user, args, data, userData)
         targetData.isApiBanned = reason
         utils.saveUser(targetUUID, targetData)
         chatbox.tell(user, "&aAPI Banned user: &7" .. targetData.name .. " (&7" .. targetUUID .. ") &afor reason: &7" .. reason, config.shopname, "format")
+        SolidityPools.logDiscordMessage("User: `" .. targetData.name:lower() .. "` (`" .. targetUUID .. "`) was api banned for: `" .. reason.."`")
     elseif args[2] == "unapiban" then
         if #args < 3 then
             chatbox.tell(user, "&cPlease specify a user.", config.shopname, "format")
@@ -103,6 +107,7 @@ local function adminCommands(user, args, data, userData)
         targetData.isApiBanned = nil
         utils.saveUser(targetUUID, targetData)
         chatbox.tell(user, "&aAPI Unbanned user: &7" .. targetData.name .. " (&7" .. targetUUID .. ")", config.shopname, "format")
+        SolidityPools.logDiscordMessage("User: `" .. targetData.name:lower() .. "` (`" .. targetUUID .. "`) was api unbanned")
     elseif args[2] == "allocate" then
         if #args < 5 then
             chatbox.tell(user, "&cPlease specify an item, a type and a delta-value.", config.shopname, "format")
@@ -204,6 +209,7 @@ local function adminCommands(user, args, data, userData)
         targetData.balance = targetData.balance + amount
         utils.saveUser(targetUUID, targetData)
         chatbox.tell(user, "&aSuccessfully changed &7"..targetData.name.."&a's balance to &6" .. (targetData.balance/1000000) .. "kro", config.shopname, "format")
+        SolidityPools.logDiscordMessage("User: `" .. targetData.name:lower() .. "` (`" .. targetUUID .. "`)'s balance was set to: " .. (targetData.balance/1000000) .. "kro")
     else
         chatbox.tell(user, "&cUnknown command. &aType &7\\"..config.command.." admin help &afor a list of commands.", config.shopname, "format")
     end

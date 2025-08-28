@@ -8,6 +8,7 @@ local itemManager = require("modules.itemManager")
 local commandHandler = require("modules.commandHandler")
 local sessionManager = require("modules.sessionManager")
 local kromerManager = require("modules.kromerManager")
+local webhookManager = require("modules.webhookManager")
 
 local function loadConfig(filename)
     local fa = fs.open(filename, "r")
@@ -101,7 +102,7 @@ local function bsod(message)
     monitor.clear()
     bigfont.blitOn(monitor, 1, ":(", "00", "bb", 2, 2)
     monitor.setCursorPos(2, 5)
-    monitor.write("The shop ran into a problem and needs restart")
+    monitor.write("The shop ran into a problem and will restart in a few minutes")
     monitor.setCursorPos(2, 6)
     monitor.write("Information: "..message)
     local stack = debug.traceback()
@@ -109,17 +110,18 @@ local function bsod(message)
         monitor.setCursorPos(2, 7+k)
         monitor.write(v)
     end
-    if config.webhook then
-        local emb = dw.createEmbed()
-            :setAuthor("Solidity Pools")
-            :setTitle("The shop ran into a problem and needs restart")
-            :setColor(13120050)
-            :setDescription("Information: "..message)
-            :addField("Traceback: ", "`"..stack.."`")
-            :setTimestamp()
-            :setFooter("SolidityPools v"..SolidityPools.version)
-        dw.sendMessage(config.webhook_url, config.shopname, nil, "", {emb.sendable()})
+    SolidityPools.logDiscordMessage("The shop crashed: `" .. message .. "`\n```"..stack.."```")
+    local function waiter()
+        while true do
+            if #SolidityPools.discordCache < 1 then
+                break
+            end
+            os.sleep(1)
+        end
     end
+    parallel.waitForAny(waiter, webhookManager)
+    os.sleep(30)
+    os.reboot()
 end
 
 local storage = BIL.createStorage()
@@ -190,4 +192,6 @@ end,function()
     local ok,err = xpcall(sessionManager, crash)
 end,function()
     local ok,err = xpcall(kromerManager, crash)
+end,function()
+    local ok,err = xpcall(webhookManager, crash)
 end)

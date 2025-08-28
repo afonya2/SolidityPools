@@ -1,5 +1,5 @@
 local utils = require("../utils")
-local adminCommands = require("adminCommands")
+local adminCommands = require("modules.adminCommands")
 
 local helpText = ""
 
@@ -30,6 +30,7 @@ local function onCommand(user, args, data)
             SolidityPools.session.lastActive = os.clock()
             chatbox.tell(user, "&aSession started.", config.shopname, "format")
             os.queueEvent("sp_render")
+            SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) started a session.")
         else
             chatbox.tell(user, "&aWelcome to "..config.shopname.."!\n&aPlease run &7\\"..config.command.." help &ato familiarize yourself with the commands.\n&aTo buy items run &7\\"..config.command.." buy <item> <amount>&a.\n&cTo sell items drop them on top of the turtle.\n&aBy continuing you accept the &7Terms and Conditions &aof the shop.\n&aRun &7\\"..config.command.." agree &ato accept.", config.shopname, "format")
         end
@@ -54,6 +55,7 @@ local function onCommand(user, args, data)
         SolidityPools.session.balance = 0
         chatbox.tell(user, "&aSession ended.", config.shopname, "format")
         os.queueEvent("sp_render")
+        SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) ended a session.")
     elseif args[1] == "info" then
         if #args < 2 then
             local strg = SolidityPools.storage.getStats()
@@ -185,6 +187,7 @@ local function onCommand(user, args, data)
             end
             turtle.select(1)
             SolidityPools.lockInv = false
+            SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) bought `x" .. amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)")
         else
             local bestMatch = nil
             local bestPerc = 0
@@ -240,12 +243,14 @@ local function onCommand(user, args, data)
             return
         end
         chatbox.tell(user, "&aYou withdrew &6" .. (amount / 100) .. "kro &7to " .. args[3], config.shopname, "format")
+        SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) withdrew " .. (amount / 100) .. "kro to `" .. args[3].."`")
     elseif args[1] == "api" then
         if args[2] == "key" then
             if args[3] == "reset" then
                 userData.apiKey = utils.generateRanStr(32)
                 utils.saveUser(data.user.uuid, userData)
                 chatbox.tell(user, "&aYour API key have been reset! Check it by running &7\\"..config.command.." api key&a.", config.shopname, "format")
+                SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) have reset their API key.")
             else
                 if userData.apiKey == nil then
                     chatbox.tell(user, "&cYou don't have an API key. &aRun &7\\"..config.command.." api key reset &ato generate one.", config.shopname, "format")

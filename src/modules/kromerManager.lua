@@ -60,8 +60,9 @@ local function onSocket(data)
         os.queueEvent("sp_render")
     end
     utils.saveUser(trans.meta.useruuid, userData)
+    SolidityPools.logDiscordMessage("User: `" .. userData.name:lower() .. "` (`" .. trans.meta.useruuid .. "`) deposited " .. trans.value .. "kro from `" .. trans.from .. "`; ID: `" .. trans.id .. "`")
     if isUserOnline(trans.meta.useruuid) then
-        chatbox.tell(trans.meta.useruuid, "&7"..trans.value.."kro &ahave been deposited to your account.", config.shopname, "format")
+        chatbox.tell(userData.name, "&7"..trans.value.."kro &ahave been deposited into your account.", config.shopname, "format")
     end
 end
 
@@ -69,26 +70,33 @@ local function kromerManager()
     initSocket()
     os.queueEvent("sp_render")
     while true do
-        local ok,data = pcall(SolidityPools.ws.receive)
-        if ok then
-            if not data then
-                print("No socket message was received...")
-                SolidityPools.kromerConnected = false
-                os.queueEvent("sp_render")
-            else
-                local ok,json = pcall(textutils.unserializeJSON, data)
-                if ok then
-                    SolidityPools.kromerConnected = true
-                    os.queueEvent("sp_render")
-                    onSocket(json)
-                else
-                    print("Failed to unserialize JSON data. "..json)
+        if SolidityPools.ws ~= nil then
+            local ok,data = pcall(SolidityPools.ws.receive)
+            if ok then
+                if not data then
+                    print("No socket message was received...")
                     SolidityPools.kromerConnected = false
                     os.queueEvent("sp_render")
+                else
+                    local ok,json = pcall(textutils.unserializeJSON, data)
+                    if ok then
+                        SolidityPools.kromerConnected = true
+                        os.queueEvent("sp_render")
+                        onSocket(json)
+                    else
+                        print("Failed to unserialize JSON data. "..json)
+                        SolidityPools.kromerConnected = false
+                        os.queueEvent("sp_render")
+                    end
                 end
+            else
+                SolidityPools.ws.close()
+                SolidityPools.kromerConnected = false
+                os.queueEvent("sp_render")
+                os.sleep(20)
+                initSocket()
             end
         else
-            SolidityPools.ws.close()
             SolidityPools.kromerConnected = false
             os.queueEvent("sp_render")
             os.sleep(20)
