@@ -154,7 +154,7 @@ local function onCommand(user, args, data)
         end
         local possible, item, cat, itemk = utils.queryItem(args[2])
         if item then
-            if item.count < amount then
+            if math.min(item.count, item.allocated) < amount then
                 chatbox.tell(user, "&cThe shop doesn't have enough stock of that item.", config.shopname, "format")
                 return
             end
@@ -195,6 +195,45 @@ local function onCommand(user, args, data)
                 chatbox.tell(user, "&cItem not found.", config.shopname, "format")
             end
         end
+    elseif (args[1] == "balance") or (args[1] == "bal") then
+        chatbox.tell(user, "&aYour current balance is &6" .. (userData.balance / 1000000) .. "kro", config.shopname, "format")
+    elseif args[1] == "withdraw" then
+        if #args < 3 then
+            chatbox.tell(user, "&cPlease specify an amount and an address.", config.shopname, "format")
+            return
+        end
+        local amount = tonumber(args[2])
+        if amount == nan then
+            chatbox.tell(user, "&cPlease specify a valid amount.", config.shopname, "format")
+            return
+        end
+        amount = math.floor(amount * 100)
+        if amount < 1 then
+            chatbox.tell(user, "&cPlease specify a valid amount.", config.shopname, "format")
+            return
+        end
+        if (amount*10000) > userData.balance then
+            chatbox.tell(user, "&cYou don't have enough money to withdraw that amount.", config.shopname, "format")
+            return
+        end
+        if SolidityPools.balance < amount * 10000 then
+            chatbox.tell(user, "&cThe shop doesn't have enough money to withdraw that amount.", config.shopname, "format")
+            return
+        end
+        local rollback = userData.balance
+        userData.balance = userData.balance - (amount * 10000)
+        utils.saveUser(data.user.uuid, userData)
+        local ok, err = pcall(SolidityPools.kapi.makeTransaction, config.privateKey, args[3], amount / 100, "message=Withdrawed amount")
+        if not ok then
+            chatbox.tell(user, "&cFailed to withdraw money: " .. err, config.shopname, "format")
+            userData.balance = rollback
+            utils.saveUser(data.user.uuid, userData)
+            return
+        end
+        chatbox.tell(user, "&aYou withdrew &6" .. (amount / 100) .. "kro &7to " .. args[3], config.shopname, "format")
+    elseif args[1] == "api" then
+    elseif args[1] == "tos" then
+        chatbox.tell(user, "Read the Terms and Conditions here: https://raw.githubusercontent.com/afonya2/SolidityPools/refs/heads/v2/tos.md", config.shopname)
     else
         chatbox.tell(user, "&cUnknown command. &aType &7\\"..config.command.." help &afor a list of commands.", config.shopname, "format")
     end
@@ -210,8 +249,8 @@ Available commands:
 - `price <item> <amount>` - Display the price of an item
 - `arb <item> <price>` - Display the arbitrage opportunity for an item
 - `buy <item> <amount>` - Buy an item
-- `balance` - Display your current balance
-- `withdraw <amount>` - Withdraw an amount
+- `balance/bal` - Display your current balance
+- `withdraw <amount> <address>` - Withdraw an amount
 - `api (key) [<reset>]` - Display API information, your API key or reset it
 - `tos` - Display the Terms and Conditions
 ]]

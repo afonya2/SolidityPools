@@ -1,8 +1,13 @@
 local api = {}
-local server = "https://kromer.reconnected.cc/"
+local server = "https://kromer.reconnected.cc/api/krist"
 
 function api.getAddress(address)
-    local requ = http.get(server.."/addresses/"..address)
+    local requ, err, errreq = http.get(server.."/addresses/"..address)
+    if (errreq == nil) and err then
+        error(err)
+    elseif errreq then
+        requ = errreq
+    end
     local out = textutils.unserialiseJSON(requ.readAll())
     if out.ok then
         return out.address
@@ -12,7 +17,12 @@ function api.getAddress(address)
 end
 
 function api.getBalance(address)
-    local requ = http.get(server.."/addresses/"..address)
+    local requ, err, errreq = http.get(server.."/addresses/"..address)
+    if (errreq == nil) and err then
+        error(err)
+    elseif errreq then
+        requ = errreq
+    end
     local out = textutils.unserialiseJSON(requ.readAll())
     if out.ok then
         return out.address.balance
@@ -22,7 +32,12 @@ function api.getBalance(address)
 end
 
 function api.getTransactions(address)
-    local requ = http.get(server.."/addresses/"..address.."/transactions")
+    local requ, err, errreq = http.get(server.."/addresses/"..address.."/transactions")
+    if (errreq == nil) and err then
+        error(err)
+    elseif errreq then
+        requ = errreq
+    end
     local out = textutils.unserialiseJSON(requ.readAll())
     if out.ok then
         return out.transactions
@@ -77,7 +92,12 @@ function api.makeTransaction(privKey, to, amount, meta)
         amount = amount,
         metadata = meta
     }
-    local requ = http.post(server.."/transactions", textutils.serialiseJSON(kutyus), {["Content-Type"] = "application/json"})
+    local requ, err, errreq = http.post(server.."/transactions", textutils.serialiseJSON(kutyus), {["Content-Type"] = "application/json"})
+    if (errreq == nil) and err then
+        error(err)
+    elseif errreq then
+        requ = errreq
+    end
     local out = textutils.unserialiseJSON(requ.readAll())
     if out.ok then
         return true
