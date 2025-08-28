@@ -124,6 +124,31 @@ local function generateRanStr(len)
     return str
 end
 
+local function includes(tbl, data)
+    for k, v in pairs(tbl) do
+        if v == data then
+            return true, k
+        end
+    end
+    return false
+end
+
+local function findUserByUUIDOrName(identifier)
+    if string.match(identifier, "-") == "-" then
+        return loadUser(identifier), identifier
+    else
+        local users = fs.list("/users/")
+        for _, user in ipairs(users) do
+            local fi = fs.open("/users/"..user, "r")
+            local data = textutils.unserialize(fi.readAll())
+            fi.close()
+            if data.name:lower() == identifier:lower() then
+                return data, user:gsub(".txt", "")
+            end
+        end
+    end
+end
+
 return {
     calculatePrice = calculatePrice,
     isPlayerClose = isPlayerClose,
@@ -131,5 +156,7 @@ return {
     saveUser = saveUser,
     queryItem = queryItem,
     saveCategory = saveCategory,
-    generateRanStr = generateRanStr
+    generateRanStr = generateRanStr,
+    includes = includes,
+    findUserByUUIDOrName = findUserByUUIDOrName
 }

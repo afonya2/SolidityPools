@@ -1,4 +1,5 @@
 local utils = require("../utils")
+local adminCommands = require("adminCommands")
 
 local helpText = ""
 
@@ -67,7 +68,6 @@ local function onCommand(user, args, data)
 
 &aTrading Fees: &7]]..config.tradingFees..[[%
 &aBalance: &6]]..(SolidityPools.balance/1000000)..[[kro
-
 &aStorage: &7]]..strg.used..[[/]]..strg.all..[[ (]]..(math.floor(strg.used/strg.all*100*100)/100)..[[%)
 &aVersion: &7]]..SolidityPools.version
             chatbox.tell(user, text, config.shopname, "format")
@@ -258,6 +258,8 @@ local function onCommand(user, args, data)
         end
     elseif args[1] == "tos" then
         chatbox.tell(user, "Read the Terms and Conditions here: https://github.com/afonya2/SolidityPools/blob/v2/tos.md", config.shopname)
+    elseif (args[1] == "admin") and utils.includes(config.owners, user) then
+        adminCommands(user, args, data, userData)
     else
         chatbox.tell(user, "&cUnknown command. &aType &7\\"..config.command.." help &afor a list of commands.", config.shopname, "format")
     end

@@ -15,7 +15,6 @@ end
 local function renderItem(monitor, k, item, x, y, longest, hidden)
     local w,h = monitor.getSize()
     local config = SolidityPools.config
-    -- TODO: replace 2nd and 3rd one with actual price
     local x1, x1i = utils.calculatePrice(item, 1, false)
     local sx1, sx1i = utils.calculatePrice(item, 1, true)
     if longest == nil then
