@@ -114,11 +114,22 @@ local function queryItem(name)
     return match
 end
 
+local function generateRanStr(len)
+    local chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789._+-*/"
+    local str = ""
+    for i = 1, len do
+        local ran = math.random(1, #chars)
+        str = str .. chars:sub(ran, ran)
+    end
+    return str
+end
+
 return {
     calculatePrice = calculatePrice,
     isPlayerClose = isPlayerClose,
     loadUser = loadUser,
     saveUser = saveUser,
     queryItem = queryItem,
-    saveCategory = saveCategory
+    saveCategory = saveCategory,
+    generateRanStr = generateRanStr
 }

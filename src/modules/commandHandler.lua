@@ -232,8 +232,23 @@ local function onCommand(user, args, data)
         end
         chatbox.tell(user, "&aYou withdrew &6" .. (amount / 100) .. "kro &7to " .. args[3], config.shopname, "format")
     elseif args[1] == "api" then
+        if args[2] == "key" then
+            if args[3] == "reset" then
+                userData.apiKey = utils.generateRanStr(32)
+                utils.saveUser(data.user.uuid, userData)
+                chatbox.tell(user, "&aYour API key have been reset! Check it by running &7\\"..config.command.." api key&a.", config.shopname, "format")
+            else
+                if userData.apiKey == nil then
+                    chatbox.tell(user, "&cYou don't have an API key. &aRun &7\\"..config.command.." api key reset &ato generate one.", config.shopname, "format")
+                    return
+                end
+                chatbox.tell(user, "Your UUID is: `" .. data.user.uuid .. "`\nYour API key is: `" .. userData.apiKey .. "`", config.shopname)
+            end
+        else
+            chatbox.tell(user, "You can read the api documentation here: https://github.com/afonya2/SolidityPools/blob/v2/api/README.md", config.shopname)
+        end
     elseif args[1] == "tos" then
-        chatbox.tell(user, "Read the Terms and Conditions here: https://raw.githubusercontent.com/afonya2/SolidityPools/refs/heads/v2/tos.md", config.shopname)
+        chatbox.tell(user, "Read the Terms and Conditions here: https://github.com/afonya2/SolidityPools/blob/v2/tos.md", config.shopname)
     else
         chatbox.tell(user, "&cUnknown command. &aType &7\\"..config.command.." help &afor a list of commands.", config.shopname, "format")
     end
@@ -251,7 +266,9 @@ Available commands:
 - `buy <item> <amount>` - Buy an item
 - `balance/bal` - Display your current balance
 - `withdraw <amount> <address>` - Withdraw an amount
-- `api (key) [<reset>]` - Display API information, your API key or reset it
+- `api` - Display API information
+- `api key` - Display your API key
+- `api key reset` - Reset your API key
 - `tos` - Display the Terms and Conditions
 ]]
     while true do
