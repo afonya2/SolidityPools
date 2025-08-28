@@ -227,6 +227,10 @@ local function onCommand(user, args, data)
         end
         local rollback = userData.balance
         userData.balance = userData.balance - (amount * 10000)
+        if SolidityPools.session.is and (SolidityPools.session.uuid == data.user.uuid) then
+            SolidityPools.session.balance = userData.balance
+            os.queueEvent("sp_render")
+        end
         utils.saveUser(data.user.uuid, userData)
         local ok, err = pcall(SolidityPools.kapi.makeTransaction, config.privateKey, args[3], amount / 100, "message=Withdrawed amount")
         if not ok then
@@ -236,9 +240,6 @@ local function onCommand(user, args, data)
             return
         end
         chatbox.tell(user, "&aYou withdrew &6" .. (amount / 100) .. "kro &7to " .. args[3], config.shopname, "format")
-        if SolidityPools.session.is and (SolidityPools.session.uuid == data.user.uuid) then
-            os.queueEvent("sp_render")
-        end
     elseif args[1] == "api" then
         if args[2] == "key" then
             if args[3] == "reset" then

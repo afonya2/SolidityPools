@@ -7,6 +7,7 @@ local frontend = require("modules.frontend")
 local itemManager = require("modules.itemManager")
 local commandHandler = require("modules.commandHandler")
 local sessionManager = require("modules.sessionManager")
+local kromerManager = require("modules.kromerManager")
 
 local function loadConfig(filename)
     local fa = fs.open(filename, "r")
@@ -150,6 +151,7 @@ _G.SolidityPools = {
     BIL = BIL,
     storage = storage,
     kapi = kapi,
+    ws = nil,
     itemsLoaded = false,
     kromerConnected = false,
     lockInv = false,
@@ -186,4 +188,6 @@ end,function()
     local ok,err = xpcall(commandHandler, crash)
 end,function()
     local ok,err = xpcall(sessionManager, crash)
+end,function()
+    local ok,err = xpcall(kromerManager, crash)
 end)
