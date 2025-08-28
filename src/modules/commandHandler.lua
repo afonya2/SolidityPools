@@ -170,6 +170,7 @@ local function onCommand(user, args, data)
             SolidityPools.session.balance = SolidityPools.session.balance - price
             SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated - amount
             SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + price
+            SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count - amount
             utils.saveCategory(cat, SolidityPools.items[cat])
             userData.balance = SolidityPools.session.balance
             utils.saveUser(data.user.uuid, userData)
@@ -182,6 +183,7 @@ local function onCommand(user, args, data)
                     turtle.drop()
                 end
             end
+            turtle.select(1)
             SolidityPools.lockInv = false
         else
             local bestMatch = nil
