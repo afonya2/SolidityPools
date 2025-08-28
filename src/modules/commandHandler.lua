@@ -7,6 +7,9 @@ local function onCommand(user, args, data)
     local userData = utils.loadUser(data.user.uuid)
     userData.name = user:lower()
     utils.saveUser(data.user.uuid, userData)
+    if SolidityPools.session.is and (SolidityPools.session.uuid == data.user.uuid) then
+        SolidityPools.session.lastActive = os.clock()
+    end
     if args[1] == "help" then
         chatbox.tell(user, helpText, config.shopname)
     elseif args[1] == "start" then
@@ -231,6 +234,9 @@ local function onCommand(user, args, data)
             return
         end
         chatbox.tell(user, "&aYou withdrew &6" .. (amount / 100) .. "kro &7to " .. args[3], config.shopname, "format")
+        if SolidityPools.session.is and (SolidityPools.session.uuid == data.user.uuid) then
+            os.queueEvent("sp_render")
+        end
     elseif args[1] == "api" then
         if args[2] == "key" then
             if args[3] == "reset" then
