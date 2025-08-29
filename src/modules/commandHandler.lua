@@ -8,6 +8,13 @@ local function onCommand(user, args, data)
     local userData = utils.loadUser(data.user.uuid)
     userData.name = user:lower()
     utils.saveUser(data.user.uuid, userData)
+    if userData.isIgnored then
+        return
+    end
+    if userData.isBanned ~= nil then
+        chatbox.tell(user, "&cYou are banned from using &7"..config.shopname.."&c. Reason: &7"..userData.isBanned, config.shopname, "format")
+        return
+    end
     if SolidityPools.session.is and (SolidityPools.session.uuid == data.user.uuid) then
         SolidityPools.session.lastActive = os.clock()
     end
@@ -263,6 +270,10 @@ local function onCommand(user, args, data)
         end
     elseif args[1] == "tos" then
         chatbox.tell(user, "Read the Terms and Conditions here: https://github.com/afonya2/SolidityPools/blob/v2/tos.md", config.shopname)
+    elseif args[1] == "money" then
+        local realBalance, allocations, perc = utils.getRealBalance()
+        local text = "&aMoney allocations:\n&8[&7"..string.rep("=", 20-math.floor(perc.userBalances/5+perc.itemAllocations/5)).."&6"..string.rep("=", math.floor(perc.userBalances/5)).."&c"..string.rep("=", math.floor(perc.itemAllocations/5)).."&8]\n&7 = Unallocated &7("..(allocations.unallocated/1000000).."kro), &6 = User Balances &7("..(allocations.userBalances/1000000).."kro), &c = Item Allocations &7("..(allocations.itemAllocations/1000000).."kro)"
+        chatbox.tell(user, text, config.shopname, "format")
     elseif (args[1] == "admin") and utils.includes(config.owners, user) then
         adminCommands(user, args, data, userData)
     else
@@ -286,6 +297,7 @@ Available commands:
 - `api key` - Display your API key
 - `api key reset` - Reset your API key
 - `tos` - Display the Terms and Conditions
+- `money` - Display the money allocations
 ]]
     while true do
         local event, user, command, args, data = os.pullEvent("command")

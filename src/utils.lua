@@ -149,6 +149,49 @@ local function findUserByUUIDOrName(identifier)
     end
 end
 
+local function getShopData()
+    if fs.exists("shopdata.txt") then
+        local f = fs.open("shopdata.txt", "r")
+        local data = textutils.unserialize(f.readAll())
+        f.close()
+        return data
+    else
+        return {
+            transactionFees = 0
+        }
+    end
+end
+
+local function saveShopData(data)
+    local f = fs.open("shopdata.txt", "w")
+    f.write(textutils.serialize(data))
+    f.close()
+end
+
+local function getRealBalance()
+    local bal = SolidityPools.kapi.getBalance(SolidityPools.config.address)*1000000
+    local shopData = getShopData()
+    local userBalances = 0
+    local users = fs.list("/users/")
+    for k,v in ipairs(users) do
+        local fi = fs.open("/users/"..v, "r")
+        local data = textutils.unserialize(fi.readAll())
+        fi.close()
+        userBalances = userBalances + data.balance
+    end
+    os.sleep(0)
+    local itemAllocations = 0
+    for k,v in pairs(SolidityPools.items) do
+        for kk, vv in ipairs(v) do
+            itemAllocations = itemAllocations + vv.allocatedMoney
+        end
+    end
+    local realBalance = bal - shopData.transactionFees - userBalances - itemAllocations
+    return realBalance,
+        { all = bal, fees = shopData.transactionFees, userBalances = userBalances, itemAllocations = itemAllocations, unallocated = realBalance },
+        { all = 100, fees = math.floor(shopData.transactionFees / bal * 10000)/100, userBalances = math.floor(userBalances / bal * 10000)/100, itemAllocations = math.floor(itemAllocations / bal * 10000)/100, unallocated = math.floor(realBalance / bal * 10000)/100 }
+end
+
 return {
     calculatePrice = calculatePrice,
     isPlayerClose = isPlayerClose,
@@ -158,5 +201,8 @@ return {
     saveCategory = saveCategory,
     generateRanStr = generateRanStr,
     includes = includes,
-    findUserByUUIDOrName = findUserByUUIDOrName
+    findUserByUUIDOrName = findUserByUUIDOrName,
+    getRealBalance = getRealBalance,
+    getShopData = getShopData,
+    saveShopData = saveShopData
 }
