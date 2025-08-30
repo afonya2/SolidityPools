@@ -163,7 +163,7 @@ local function onCommand(user, args, data)
             local ic = 0
             for i = 1, 1000 do
                 local oprice, pricei = utils.calculatePrice(item, i, true)
-                if oprice == inf then
+                if (oprice == inf) or (oprice == nan) or (oprice == 0) then
                     break
                 end
                 if oprice < price*i then

@@ -96,7 +96,7 @@ local function mysplit (inputstr, sep)
     return t
 end
 
-local function bsod(message)
+local function bsod(message, stack)
     monitor.setBackgroundColor(colors.blue)
     monitor.setTextColor(colors.white)
     monitor.clear()
@@ -105,7 +105,6 @@ local function bsod(message)
     monitor.write("The shop ran into a problem and will restart in a few minutes")
     monitor.setCursorPos(2, 6)
     monitor.write("Information: "..message)
-    local stack = debug.traceback()
     for k,v in ipairs(mysplit(stack, "\n")) do
         monitor.setCursorPos(2, 7+k)
         monitor.write(v)
@@ -171,10 +170,13 @@ _G.SolidityPools = {
     end
 }
 
+local isCrashed = nil
+local stack = nil
+
 local function crash(err)
     if err ~= "Terminated" then
-        print(err)
-        bsod(err)
+        isCrashed = err
+        stack = debug.traceback()
     else
         monitor.setBackgroundColor(colors.black)
         monitor.setTextColor(colors.white)
@@ -195,3 +197,8 @@ end,function()
 end,function()
     local ok,err = xpcall(webhookManager, crash)
 end)
+
+if isCrashed then
+    print(isCrashed)
+    bsod(isCrashed, stack)
+end
