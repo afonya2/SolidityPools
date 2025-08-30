@@ -18,6 +18,7 @@ local function onCommand(user, args, data)
     if SolidityPools.session.is and (SolidityPools.session.uuid == data.user.uuid) then
         SolidityPools.session.lastActive = os.clock()
     end
+    SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) ran command: `\\" .. config.command .. " " .. table.concat(args, " ") .. "`")
     if args[1] == "help" then
         chatbox.tell(user, helpText, config.shopname)
     elseif args[1] == "start" then
@@ -224,6 +225,9 @@ local function onCommand(user, args, data)
                 return
             end
             SolidityPools.lockInv = true
+            local ai = item.allocated
+            local am = item.allocatedMoney
+            local pb = SolidityPools.session.balance
             SolidityPools.session.balance = SolidityPools.session.balance - price
             SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated - amount
             SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + price
@@ -242,7 +246,7 @@ local function onCommand(user, args, data)
             end
             turtle.select(1)
             SolidityPools.lockInv = false
-            SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) bought `x" .. amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)")
+            SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) bought `x" .. amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (SolidityPools.session.balance/1000000) .. "kro`")
         else
             local bestMatch = nil
             local bestPerc = 0
@@ -298,7 +302,7 @@ local function onCommand(user, args, data)
             return
         end
         chatbox.tell(user, "&aYou withdrew &6" .. (amount / 100) .. "kro &7to " .. args[3], config.shopname, "format")
-        SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) withdrew " .. (amount / 100) .. "kro to `" .. args[3].."`")
+        SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) withdrew " .. (amount / 100) .. "kro to `" .. args[3].."`\nBalance: `" .. (rollback/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
     elseif args[1] == "api" then
         if args[2] == "key" then
             if args[3] == "reset" then

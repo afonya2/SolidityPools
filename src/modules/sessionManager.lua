@@ -35,6 +35,9 @@ local function onItemPickup()
         local remainder = itemCount - soldCount
         local price, pricei = utils.calculatePrice(item, soldCount, true)
         local userData = utils.loadUser(SolidityPools.session.uuid)
+        local ai = item.allocated
+        local am = item.allocatedMoney
+        local pb = SolidityPools.session.balance
         SolidityPools.session.balance = SolidityPools.session.balance + price
         SolidityPools.items[icat][ipos].allocated = item.allocated + soldCount
         SolidityPools.items[icat][ipos].allocatedMoney = item.allocatedMoney - price
@@ -44,7 +47,7 @@ local function onItemPickup()
         utils.saveUser(SolidityPools.session.uuid, userData)
         os.queueEvent("sp_render")
         chatbox.tell(SolidityPools.session.username, "&aYou sold &7x"..soldCount.." "..item.name.."&a for &6"..(price/1000000).."kro &7("..(pricei/1000000).."kro/i)", config.shopname, "format")
-        SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) sold `x" .. soldCount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)")
+        SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) sold `x" .. soldCount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (SolidityPools.session.balance/1000000) .. "kro`")
         if remainder > 0 then
             turtle.drop(remainder)
         end

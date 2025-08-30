@@ -54,13 +54,14 @@ local function onSocket(data)
         return
     end
     local userData = utils.loadUser(trans.meta.useruuid)
+    local pb = userData.balance
     userData.balance = userData.balance + trans.value*1000000
     if SolidityPools.session.is and (SolidityPools.session.uuid == trans.meta.useruuid) then
         SolidityPools.session.balance = userData.balance
         os.queueEvent("sp_render")
     end
     utils.saveUser(trans.meta.useruuid, userData)
-    SolidityPools.logDiscordMessage("User: `" .. userData.name:lower() .. "` (`" .. trans.meta.useruuid .. "`) deposited " .. trans.value .. "kro from `" .. trans.from .. "`; ID: `" .. trans.id .. "`")
+    SolidityPools.logDiscordMessage("User: `" .. userData.name:lower() .. "` (`" .. trans.meta.useruuid .. "`) deposited " .. trans.value .. "kro from `" .. trans.from .. "`; ID: `" .. trans.id .. "`\nBalance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
     if isUserOnline(trans.meta.useruuid) then
         chatbox.tell(userData.name, "&7"..trans.value.."kro &ahave been deposited into your account.", config.shopname, "format")
     end
