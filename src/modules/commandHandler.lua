@@ -146,6 +146,54 @@ local function onCommand(user, args, data)
                 chatbox.tell(user, "&cItem not found.", config.shopname, "format") 
             end
         end
+    elseif args[1] == "arb" then
+        if #args < 3 then
+            chatbox.tell(user, "&cPlease specify an item and a price.", config.shopname, "format")
+            return
+        end
+        local price = tonumber(args[3])
+        if (price == nan) or (price <= 0) then
+            chatbox.tell(user, "&cPlease specify a valid price.", config.shopname, "format")
+            return
+        end
+        price = price * 1000000
+        local possible, item = utils.queryItem(args[2])
+        if item then
+            local most = 0
+            local ic = 0
+            for i = 1, 1000 do
+                local oprice, pricei = utils.calculatePrice(item, i, true)
+                if oprice == inf then
+                    break
+                end
+                if oprice < price*i then
+                    break
+                end
+                if oprice > most then
+                    most = oprice
+                    ic = i
+                end
+            end
+            if most == 0 then
+                chatbox.tell(user, "&cThere is no way to profit arbitrage at the current prices.", config.shopname, "format")
+            else
+                chatbox.tell(user, "&aIf a shop is selling for &6"..(price/1000000).."kro\n&cBuy &7x"..ic.." "..item.name.." &cfor &6"..(price*ic/1000000).."kro\n&aThen sell &7x"..ic.." "..item.name.." &cfor &6"..(most/1000000).."kro &7("..(math.floor(most/ic)/1000000).."kro/i)", config.shopname, "format")
+            end
+        else
+            local bestMatch = nil
+            local bestPerc = 0
+            for k, v in pairs(possible) do
+                if v > bestPerc then
+                    bestPerc = v
+                    bestMatch = k
+                end
+            end
+            if bestPerc > 50 then
+                chatbox.tell(user, "&cItem not found. &aDid you mean: &7" .. bestMatch .. "&a?", config.shopname, "format")
+            else
+                chatbox.tell(user, "&cItem not found.", config.shopname, "format") 
+            end
+        end
     elseif args[1] == "buy" then
         if #args < 3 then
             chatbox.tell(user, "&cPlease specify an item and an amount.", config.shopname, "format")
