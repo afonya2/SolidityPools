@@ -178,7 +178,7 @@ local function onCommand(user, args, data)
             if most == 0 then
                 chatbox.tell(user, "&cThere is no way to profit arbitrage at the current prices.", config.shopname, "format")
             else
-                chatbox.tell(user, "&aIf a shop is selling for &6"..(price/1000000).."kro\n&cBuy &7x"..ic.." "..item.name.." &cfor &6"..(price*ic/1000000).."kro\n&aThen sell &7x"..ic.." "..item.name.." &cfor &6"..(most/1000000).."kro &7("..(math.floor(most/ic)/1000000).."kro/i)", config.shopname, "format")
+                chatbox.tell(user, "&aIf a shop is selling for &6"..(price/1000000).."kro\n&cBuy &7x"..ic.." "..item.name.." &cfor &6"..(price*ic/1000000).."kro\n&aThen sell &7x"..ic.." "..item.name.." &ahere for &6"..(most/1000000).."kro &7("..(math.floor(most/ic)/1000000).."kro/i)\n&aKeep the difference of &6"..((most - price*ic)/1000000).."kro", config.shopname, "format")
             end
         else
             local bestMatch = nil
@@ -324,7 +324,7 @@ local function onCommand(user, args, data)
         chatbox.tell(user, "Read the Terms and Conditions here: https://github.com/afonya2/SolidityPools/blob/v2/tos.md", config.shopname)
     elseif args[1] == "money" then
         local realBalance, allocations, perc = utils.getRealBalance()
-        local text = "&aMoney allocations:\n&8[&7"..string.rep("=", 20-math.floor(perc.userBalances/5+perc.itemAllocations/5)).."&6"..string.rep("=", math.floor(perc.userBalances/5)).."&c"..string.rep("=", math.floor(perc.itemAllocations/5)).."&8]\n&7 = Unallocated &7("..(allocations.unallocated/1000000).."kro), &6 = User Balances &7("..(allocations.userBalances/1000000).."kro), &c = Item Allocations &7("..(allocations.itemAllocations/1000000).."kro)"
+        local text = "&aMoney allocations:\n&8[&7"..string.rep("=", 20-math.floor(perc.userBalances/5+perc.itemAllocations/5+perc.fees/5)).."&a"..string.rep("=", math.floor(perc.fees/5)).."&6"..string.rep("=", math.floor(perc.userBalances/5)).."&c"..string.rep("=", math.floor(perc.itemAllocations/5)).."&8]\n&7 = Unallocated &7("..(allocations.unallocated/1000000).."kro), &a = Fees &7("..(allocations.fees/1000000).."kro), &6 = User Balances &7("..(allocations.userBalances/1000000).."kro), &c = Item Allocations &7("..(allocations.itemAllocations/1000000).."kro)"
         chatbox.tell(user, text, config.shopname, "format")
     elseif (args[1] == "admin") and utils.includes(config.owners, user) then
         adminCommands(user, args, data, userData)
