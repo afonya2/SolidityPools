@@ -304,6 +304,10 @@ local function onCommand(user, args, data)
         chatbox.tell(user, "&aYou withdrew &6" .. (amount / 100) .. "kro &7to " .. args[3], config.shopname, "format")
         SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) withdrew " .. (amount / 100) .. "kro to `" .. args[3].."`\nBalance: `" .. (rollback/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
     elseif args[1] == "api" then
+        if not config.apiEnabled then
+            chatbox.tell(user, "&cAPI is disabled for this shop.", config.shopname, "format")
+            return
+        end
         if args[2] == "key" then
             if args[3] == "reset" then
                 userData.apiKey = utils.generateRanStr(32)

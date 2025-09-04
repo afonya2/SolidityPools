@@ -4,7 +4,7 @@ local function webhookManager()
             local message = ""
             local del = 0
             while #SolidityPools.discordCache > 0 do
-                if #(message .. SolidityPools.discordCache[1] .. "\n") > 1500 then
+                if #(message .. SolidityPools.discordCache[del+1] .. "\n") > 1500 then
                     break
                 end
                 message = message .. SolidityPools.discordCache[del+1] .. "\n"

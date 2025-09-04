@@ -9,6 +9,7 @@ local commandHandler = require("modules.commandHandler")
 local sessionManager = require("modules.sessionManager")
 local kromerManager = require("modules.kromerManager")
 local webhookManager = require("modules.webhookManager")
+local apiServer = require("modules.apiServer")
 
 local function loadConfig(filename)
     local fa = fs.open(filename, "r")
@@ -196,6 +197,8 @@ end,function()
     local ok,err = xpcall(kromerManager, crash)
 end,function()
     local ok,err = xpcall(webhookManager, crash)
+end,function()
+    local ok,err = xpcall(apiServer, crash)
 end)
 
 if isCrashed then
