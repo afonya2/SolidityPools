@@ -38,6 +38,7 @@ local pepVerifier = {
     ["manipulator with entity sensor"] = false,
     monitor = false
 }
+local wmodem = {id = nil, wrap = nil}
 local papsi = peripheral.getNames()
 for k,v in ipairs(papsi) do
     local t,t2 = peripheral.getType(v)
@@ -47,6 +48,8 @@ for k,v in ipairs(papsi) do
     if t == "modem" then
         if peripheral.wrap(v).isWireless() then
             pepVerifier["wireless modem"] = true
+            wmodem.id = v
+            wmodem.wrap = peripheral.wrap(v)
         else
             pepVerifier["wired modem"] = true
         end
@@ -145,6 +148,10 @@ _G.SolidityPools = {
     monitor = {
         id = peripheral.getName(monitor),
         wrap = monitor
+    },
+    modem = {
+        id = wmodem.id,
+        wrap = wmodem.wrap
     },
     bsod = bsod,
     dw = dw,

@@ -192,6 +192,50 @@ local function getRealBalance()
         { all = 100, fees = math.floor(shopData.transactionFees / bal * 10000)/100, userBalances = math.floor(userBalances / bal * 10000)/100, itemAllocations = math.floor(itemAllocations / bal * 10000)/100, unallocated = math.floor(realBalance / bal * 10000)/100 }
 end
 
+local function copy(tbl, deep)
+    local out = {}
+    for k,v in pairs(tbl) do
+        if deep and type(v) == "table" then
+            out[k] = copy(v, deep)
+        else
+            out[k] = v
+        end
+    end
+    return out
+end
+
+local function positionMessage(msgObj)
+    local x = (msgObj.collected.center^2 - msgObj.collected.x^2 + 4) / 4
+    local y = (msgObj.collected.center^2 - msgObj.collected.y^2 + 4) / 4
+    local z = (msgObj.collected.center^2 - msgObj.collected.z^2 + 4) / 4
+    x = x + SolidityPools.config["modem_pos"].x
+    y = y + SolidityPools.config["modem_pos"].y
+    z = z + SolidityPools.config["modem_pos"].z
+    return {x = x, y = y, z = z}
+end
+
+local function base10ToBase16(n)
+    local convo = {[0]="0",[1]="1",[2]="2",[3]="3",[4]="4",[5]="5",[6]="6",[7]="7",[8]="8",[9]="9",[10]="a",[11]="b",[12]="c",[13]="d",[14]="e",[15]="f"}
+    local out = ""
+    while n > 0 do
+        out = convo[n%16] .. out
+        n = math.floor(n/16)
+    end
+    return out
+end
+
+local function bytesToHexString(tbl)
+    local out = ""
+    for i=1,#tbl do
+        local temp = base10ToBase16(tbl[i])
+        if #temp == 1 then
+            temp = "0" .. temp
+        end
+        out = out .. temp
+    end
+    return out
+end
+
 return {
     calculatePrice = calculatePrice,
     isPlayerClose = isPlayerClose,
@@ -204,5 +248,9 @@ return {
     findUserByUUIDOrName = findUserByUUIDOrName,
     getRealBalance = getRealBalance,
     getShopData = getShopData,
-    saveShopData = saveShopData
+    saveShopData = saveShopData,
+    copy = copy,
+    positionMessage = positionMessage,
+    base10ToBase16 = base10ToBase16,
+    bytesToHexString = bytesToHexString
 }
