@@ -12,7 +12,8 @@ local function generateResponse(type, req, data, sign)
         ["time"] = math.floor(os.epoch("utc") / 1000),
         ["computer"] = os.getComputerID()
     }
-    msg.hash = utils.bytesToHexString(SolidityPools.sha.digest(sign..textutils.serialise(msg, { allow_repetitions = true, compact = true })))
+    local tempmsg = textutils.serialise(textutils.unserialise(textutils.serialise(msg, { allow_repetitions = true, compact = true })), { allow_repetitions = true, compact = true })
+    msg.hash = utils.bytesToHexString(SolidityPools.sha.digest(sign..tempmsg))
     return textutils.serialise(msg, { allow_repetitions = true, compact = true })
 end
 
@@ -34,6 +35,11 @@ local function onApiMessage(msgId, pos, data, replyChannel)
     else
         SolidityPools.logDiscordMessage("X: `" .. pos.x .. "` Y: `" .. pos.y .. "` Z: `" .. pos.z .. "` User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) API request: `" .. data.type .. "`")
     end
+    if userData.isBanned ~= nil then
+        local msg = generateResponse("error", data, { message = "You are banned from using the shop.", error = "banned", reason = userData.isBanned }, userData.apiKey)
+        modem.transmit(replyChannel, config.apiChannel, msg)
+        return
+    end
     if userData.isApiBanned ~= nil then
         local msg = generateResponse("error", data, { message = "You are banned from using the API.", error = "banned", reason = userData.isApiBanned }, userData.apiKey)
         modem.transmit(replyChannel, config.apiChannel, msg)
@@ -43,7 +49,7 @@ local function onApiMessage(msgId, pos, data, replyChannel)
         local msg = generateResponse("balance_ack", data, { balance = userData.balance/1000000 }, userData.apiKey)
         modem.transmit(replyChannel, config.apiChannel, msg)
     elseif data.type == "info" then
-        if data.data.item == null then
+        if (data.data.item == null) or (type(data.data.item) ~= "string") then
             local realBalance, allocations, perc = utils.getRealBalance()
             local strg = SolidityPools.storage.getStats()
             local msg = generateResponse("shop_info", data, {
@@ -99,6 +105,11 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
         end
+        if type(data.data.item) ~= "string" then
+            local msg = generateResponse("error", data, { message = "Invalid item specified.", error = "invalid_data", data = "item" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
         local amount = tonumber(data.data.amount)
         if (amount == nan) or (math.floor(amount) ~= amount) or (amount == 0) then
             local msg = generateResponse("error", data, { message = "Invalid amount specified.", error = "invalid_data", data = "amount" }, userData.apiKey)
@@ -139,6 +150,151 @@ local function onApiMessage(msgId, pos, data, replyChannel)
                 modem.transmit(replyChannel, config.apiChannel, msg)
             end
         end
+    elseif data.type == "arb" then
+        if (data.data.item == nil) or (data.data.price == nil) then
+            local msg = generateResponse("error", data, { message = "Item or price not specified.", error = "missing_data", data = { "item", "price" } }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if type(data.data.item) ~= "string" then
+            local msg = generateResponse("error", data, { message = "Invalid item specified.", error = "invalid_data", data = "item" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local price = tonumber(data.data.price)
+        if (price == nan) or (price <= 0) then
+            local msg = generateResponse("error", data, { message = "Invalid price specified.", error = "invalid_data", data = "price" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        price = math.floor(price * 1000000)
+        local possible, item = utils.queryItem(data.data.item)
+        if item then
+            local most = 0
+            local ic = 0
+            for i = 1, 1000 do
+                local oprice, pricei = utils.calculatePrice(item, i, true)
+                if (oprice == inf) or (oprice == nan) or (oprice == 0) then
+                    break
+                end
+                if oprice < price*i then
+                    break
+                end
+                if oprice > most then
+                    most = oprice
+                    ic = i
+                end
+            end
+            if most == 0 then
+                local msg = generateResponse("arb_ack", data, {
+                    canProfit = false
+                }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            else
+                local msg = generateResponse("arb_ack", data, {
+                    canProfit = true,
+                    count = ic,
+                    buyPrice = price*ic/1000000,
+                    sellPrice = most/1000000,
+                    profit = (most - price*ic)/1000000
+                }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            end
+        else
+            local bestMatch = nil
+            local bestPerc = 0
+            for k, v in pairs(possible) do
+                if v > bestPerc then
+                    bestPerc = v
+                    bestMatch = k
+                end
+            end
+            if bestPerc > 50 then
+                local msg = generateResponse("error", data, { message = "Item not found. Did you mean: " .. bestMatch .. "?", error = "item_not_found", suggestion = bestMatch }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            else
+                local msg = generateResponse("error", data, { message = "Item not found.", error = "item_not_found" }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            end
+        end
+    elseif data.type == "money" then
+        local realBalance, allocations, perc = utils.getRealBalance()
+        local msg = generateResponse("money_info", data, {
+            balance = allocations.all/1000000,
+            allocations = {
+                all = allocations.all/1000000,
+                fees = allocations.fees/1000000,
+                userBalances = allocations.userBalances/1000000,
+                itemAllocations = allocations.itemAllocations/1000000,
+                unallocated = allocations.unallocated/1000000
+            },
+            percentages = {
+                all = 100,
+                fees = perc.fees,
+                userBalances = perc.userBalances,
+                itemAllocations = perc.itemAllocations,
+                unallocated = perc.unallocated
+            }
+        }, userData.apiKey)
+        modem.transmit(replyChannel, config.apiChannel, msg)
+    elseif data.type == "withdraw" then
+        if (data.data.amount == nil) or (data.data.address == nil) then
+            local msg = generateResponse("error", data, { message = "Amount or address not specified.", error = "missing_data", data = { "amount", "address" } }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if type(data.data.address) ~= "string" then
+            local msg = generateResponse("error", data, { message = "Invalid address specified.", error = "invalid_data", data = "address" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local amount = tonumber(data.data.amount)
+        if amount == nan then
+            local msg = generateResponse("error", data, { message = "Invalid amount specified.", error = "invalid_data", data = "amount" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        amount = math.floor(amount * 100)
+        if amount < 1 then
+            local msg = generateResponse("error", data, { message = "Invalid amount specified.", error = "invalid_data", data = "amount" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if (amount*10000) > userData.balance then
+            local msg = generateResponse("error", data, { message = "Insufficient balance.", error = "insufficient_balance" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local realBalance, allocations, perc = utils.getRealBalance()
+        if allocations.all < amount * 10000 then
+            local msg = generateResponse("error", data, { message = "The shop doesn't have enough money to withdraw that amount.", error = "shop_insufficient_balance" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local rollback = userData.balance
+        userData.balance = userData.balance - (amount * 10000)
+        if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
+            SolidityPools.session.balance = userData.balance
+            os.queueEvent("sp_render")
+        end
+        utils.saveUser(userData.uuid, userData)
+        local ok, err = pcall(SolidityPools.kapi.makeTransaction, config.privateKey, data.data.address, amount / 100, "message=Withdrawed amount")
+        if not ok then
+            local msg = generateResponse("error", data, { message = "Failed to withdraw money: " .. err, error = "transaction_failed" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            userData.balance = rollback
+            if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
+                SolidityPools.session.balance = userData.balance
+                os.queueEvent("sp_render")
+            end
+            utils.saveUser(data.user.uuid, userData)
+            return
+        end
+        local msg = generateResponse("withdraw_ack", data, {
+            balance = userData.balance/1000000,
+        }, userData.apiKey)
+        modem.transmit(replyChannel, config.apiChannel, msg)
+        SolidityPools.logDiscordMessage("User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) withdrew " .. (amount / 100) .. "kro to `" .. data.data.address .."`\nBalance: `" .. (rollback/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
     else
         local msg = generateResponse("error", data, { message = "Unknown type.", error = "unknown_type" }, userData.apiKey)
         modem.transmit(replyChannel, config.apiChannel, msg)

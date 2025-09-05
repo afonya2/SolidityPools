@@ -158,7 +158,7 @@ local function onCommand(user, args, data)
             chatbox.tell(user, "&cPlease specify a valid price.", config.shopname, "format")
             return
         end
-        price = price * 1000000
+        price = math.floor(price * 1000000)
         local possible, item = utils.queryItem(args[2])
         if item then
             local most = 0
@@ -284,7 +284,8 @@ local function onCommand(user, args, data)
             chatbox.tell(user, "&cYou don't have enough money to withdraw that amount.", config.shopname, "format")
             return
         end
-        if SolidityPools.balance < amount * 10000 then
+        local realBalance, allocations, perc = utils.getRealBalance()
+        if allocations.all < amount * 10000 then
             chatbox.tell(user, "&cThe shop doesn't have enough money to withdraw that amount.", config.shopname, "format")
             return
         end
@@ -299,6 +300,10 @@ local function onCommand(user, args, data)
         if not ok then
             chatbox.tell(user, "&cFailed to withdraw money: " .. err, config.shopname, "format")
             userData.balance = rollback
+            if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
+                SolidityPools.session.balance = userData.balance
+                os.queueEvent("sp_render")
+            end
             utils.saveUser(data.user.uuid, userData)
             return
         end
