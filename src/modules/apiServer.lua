@@ -42,6 +42,103 @@ local function onApiMessage(msgId, pos, data, replyChannel)
     if data.type == "balance" then
         local msg = generateResponse("balance_ack", data, { balance = userData.balance/1000000 }, userData.apiKey)
         modem.transmit(replyChannel, config.apiChannel, msg)
+    elseif data.type == "info" then
+        if data.data.item == null then
+            local realBalance, allocations, perc = utils.getRealBalance()
+            local strg = SolidityPools.storage.getStats()
+            local msg = generateResponse("shop_info", data, {
+                name = config.shopname,
+                description = config.description,
+                location = SolidityPools.location,
+                address = config.address,
+                tradingFees = config.tradingFees,
+                balance = allocations.all/1000000,
+                storage = {
+                    all = strg.all,
+                    free = strg.free,
+                    used = strg.used,
+                    percentage = math.floor(strg.used/strg.all*100*100)/100
+                },
+                version = SolidityPools.version
+            }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+        else
+            local possible, item = utils.queryItem(data.data.item)
+            if item then
+                local realBalance, allocations, perc = utils.getRealBalance()
+                local msg = generateResponse("item_info", data, {
+                    name = item.name,
+                    aliases = item.aliases,
+                    query = item.query,
+                    allocatedItems = math.min(item.allocated, item.count),
+                    allocatedMoney = math.min(item.allocatedMoney, allocations.all)/1000000,
+                    count = item.count,
+                }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            else
+                local bestMatch = nil
+                local bestPerc = 0
+                for k, v in pairs(possible) do
+                    if v > bestPerc then
+                        bestPerc = v
+                        bestMatch = k
+                    end
+                end
+                if bestPerc > 50 then
+                    local msg = generateResponse("error", data, { message = "Item not found. Did you mean: " .. bestMatch .. "?", error = "item_not_found", suggestion = bestMatch }, userData.apiKey)
+                    modem.transmit(replyChannel, config.apiChannel, msg)
+                else
+                    local msg = generateResponse("error", data, { message = "Item not found.", error = "item_not_found" }, userData.apiKey)
+                    modem.transmit(replyChannel, config.apiChannel, msg)
+                end
+            end
+        end
+    elseif data.type == "price" then
+        if (data.data.item == nil) or (data.data.amount == nil) then
+            local msg = generateResponse("error", data, { message = "Item or amount not specified.", error = "missing_data", data = { "item", "amount" } }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local amount = tonumber(data.data.amount)
+        if (amount == nan) or (math.floor(amount) ~= amount) or (amount == 0) then
+            local msg = generateResponse("error", data, { message = "Invalid amount specified.", error = "invalid_data", data = "amount" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local possible, item = utils.queryItem(data.data.item)
+        if item then
+            if amount < 0 then
+                local price, pricei = utils.calculatePrice(item, math.abs(amount), true)
+                local msg = generateResponse("item_info", data, {
+                    amount = price/1000000,
+                    amountPerItem = pricei/1000000
+                }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            elseif amount > 0 then
+                local price, pricei = utils.calculatePrice(item, amount, false)
+                local msg = generateResponse("item_info", data, {
+                    amount = price/1000000,
+                    amountPerItem = pricei/1000000
+                }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            end
+        else
+            local bestMatch = nil
+            local bestPerc = 0
+            for k, v in pairs(possible) do
+                if v > bestPerc then
+                    bestPerc = v
+                    bestMatch = k
+                end
+            end
+            if bestPerc > 50 then
+                local msg = generateResponse("error", data, { message = "Item not found. Did you mean: " .. bestMatch .. "?", error = "item_not_found", suggestion = bestMatch }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            else
+                local msg = generateResponse("error", data, { message = "Item not found.", error = "item_not_found" }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            end
+        end
     else
         local msg = generateResponse("error", data, { message = "Unknown type.", error = "unknown_type" }, userData.apiKey)
         modem.transmit(replyChannel, config.apiChannel, msg)
@@ -56,7 +153,7 @@ local function apiServer()
         local t = peripheral.getType(v)
         if t == "modem" then
             local wrp = peripheral.wrap(v)
-            if wrp.isWireless() then
+            if wrp.isWireless() and (config.modems[v] ~= nil) then
                 wrp.open(config.apiChannel)
                 modems = modems + 1
             end
@@ -75,33 +172,37 @@ local function apiServer()
         if config.apiEnabled and (channel == config.apiChannel) then
             local ok,data = pcall(textutils.unserialize, message)
             if ok then
-                if (data.computer ~= nil) or (data.time ~= nil) or (data.protocol ~= "SPAPIv1") then
+                if (data.computer ~= nil) and (data.computer ~= os.getComputerID()) and (data.time ~= nil) and (data.user ~= nil) and (data.hash ~= nil) and (data.protocol == "SPAPIv1") then
                     local msgId = data.computer .. "#" .. data.time
                     local realSide = config.modems[side]
-                    local hash = utils.bytesToHexString(SolidityPools.sha.digest(message))
-                    if messages[msgId] then
-                        if ((messages[msgId].collected.center == nil) or (messages[msgId].collected.x == nil) or (messages[msgId].collected.y == nil) or (messages[msgId].collected.z == nil)) and (messages[msgId].hash == hash) then
-                            messages[msgId].collected[realSide] = distance
-                            if (messages[msgId].collected.center ~= nil) and (messages[msgId].collected.x ~= nil) and (messages[msgId].collected.y ~= nil) and (messages[msgId].collected.z ~= nil) then
-                                local pos = utils.positionMessage(messages[msgId])
-                                onApiMessage(msgId, pos, data, replyChannel)
+                    if realSide ~= nil then
+                        local hash = utils.bytesToHexString(SolidityPools.sha.digest(message))
+                        if messages[msgId] then
+                            if ((messages[msgId].collected.center == nil) or (messages[msgId].collected.x == nil) or (messages[msgId].collected.y == nil) or (messages[msgId].collected.z == nil)) and (messages[msgId].hash == hash) then
+                                messages[msgId].collected[realSide] = distance
+                                if (messages[msgId].collected.center ~= nil) and (messages[msgId].collected.x ~= nil) and (messages[msgId].collected.y ~= nil) and (messages[msgId].collected.z ~= nil) then
+                                    local pos = utils.positionMessage(messages[msgId])
+                                    onApiMessage(msgId, pos, data, replyChannel)
+                                end
+                            else
+                                print("Message mismatch")
                             end
                         else
-                            print("Message mismatch")
+                            messages[msgId] = {
+                                id = msgId,
+                                data = data,
+                                collected = {
+                                    [realSide] = distance
+                                },
+                                time = data.time,
+                                hash = hash
+                            }
                         end
-                    else
-                        messages[msgId] = {
-                            id = msgId,
-                            data = data,
-                            collected = {
-                                [realSide] = distance
-                            },
-                            time = data.time,
-                            hash = hash
-                        }
                     end
                 else
-                    print("Invalid message structure")
+                    if data.computer ~= os.getComputerID() then
+                        print("Invalid message structure")
+                    end
                 end
             else
                 print("Failed to parse message: " .. data)

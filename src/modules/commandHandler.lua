@@ -66,6 +66,7 @@ local function onCommand(user, args, data)
         SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) ended a session.")
     elseif args[1] == "info" then
         if #args < 2 then
+            local realBalance, allocations, perc = utils.getRealBalance()
             local strg = SolidityPools.storage.getStats()
             local text = [[&aShop info:
 &aName: &7]]..config.shopname..[[
@@ -77,14 +78,14 @@ local function onCommand(user, args, data)
 &aAddress: &7]]..config.address..[[
 
 &aTrading Fees: &7]]..config.tradingFees..[[%
-&aBalance: &6]]..(SolidityPools.balance/1000000)..[[kro
+&aBalance: &6]]..(allocations.all/1000000)..[[kro
 &aStorage: &7]]..strg.used..[[/]]..strg.all..[[ (]]..(math.floor(strg.used/strg.all*100*100)/100)..[[%)
 &aVersion: &7]]..SolidityPools.version
             chatbox.tell(user, text, config.shopname, "format")
         else
             local possible, item = utils.queryItem(args[2])
             if item then
-                local itemC = SolidityPools.storage.getItemCount(item.query)
+                local realBalance, allocations, perc = utils.getRealBalance()
                 local text = [[&aItem info:
 &aName: &7]]..item.name..[[
 
@@ -92,10 +93,10 @@ local function onCommand(user, args, data)
 
 &aQuery: &7]]..item.query..[[
 
-&aAllocated items: &7]]..math.min(item.allocated, itemC)..[[
+&aAllocated items: &7]]..math.min(item.allocated, item.count)..[[
 
-&aAllocated money: &6]]..(math.min(item.allocatedMoney, SolidityPools.balance)/1000000)..[[kro
-&aCount: &7]]..itemC
+&aAllocated money: &6]]..(math.min(item.allocatedMoney, allocations.all)/1000000)..[[kro
+&aCount: &7]]..item.count
                 chatbox.tell(user, text, config.shopname, "format")
             else
                 local bestMatch = nil
