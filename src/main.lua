@@ -10,6 +10,7 @@ local sessionManager = require("modules.sessionManager")
 local kromerManager = require("modules.kromerManager")
 local webhookManager = require("modules.webhookManager")
 local apiServer = require("modules.apiServer")
+local orderFullfill = require("modules.orderFulfillment")
 
 local function loadConfig(filename)
     local fa = fs.open(filename, "r")
@@ -31,6 +32,13 @@ if chatbox == nil then
     print("Chatbox must be registered")
     return
 end
+
+if not fs.exists("config.conf") then
+    print("Config file not found")
+    return
+end
+local config = loadConfig("config.conf")
+
 local pepVerifier = {
     storage = false,
     ["wireless modem"] = false,
@@ -39,11 +47,15 @@ local pepVerifier = {
     monitor = false
 }
 local wmodem = {id = nil, wrap = nil}
+local chests = {}
 local papsi = peripheral.getNames()
 for k,v in ipairs(papsi) do
     local t,t2 = peripheral.getType(v)
     if t2 == "inventory" then
-        pepVerifier.storage = true
+        if (v ~= config.apiChest) and (v:match("ender_storage") == nil) then
+            pepVerifier.storage = true
+            table.insert(chests, v)
+        end
     end
     if t == "modem" then
         if peripheral.wrap(v).isWireless() then
@@ -72,11 +84,6 @@ if tterm then
     return
 end
 
-if not fs.exists("config.conf") then
-    print("Config file not found")
-    return
-end
-local config = loadConfig("config.conf")
 local items = {}
 local idir = fs.list("items/")
 for k,v in ipairs(idir) do
@@ -127,11 +134,27 @@ local function bsod(message, stack)
     os.reboot()
 end
 
-local storage = BIL.createStorage()
+local storage = BIL.createStorage(chests)
 local x,y,z = gps.locate()
 
 if (SolidityPools ~= nil) and (SolidityPools.ws ~= nil) then
     SolidityPools.ws.close()
+end
+
+local wirmodem = {id = nil, wrap = nil}
+for k,v in ipairs({"top", "right", "left", "bottom", "behind", "front"}) do
+    local t = peripheral.getType(v)
+    local wrp = peripheral.wrap(v)
+    if t == "modem" then
+        if not wrp.isWireless() then
+            wirmodem.id = v
+            wirmodem.wrap = wrp
+            break
+        end
+    end
+end
+if wirmodem.id == nil then
+    error("No wired modem found")
 end
 
 _G.SolidityPools = {
@@ -152,6 +175,10 @@ _G.SolidityPools = {
     modem = {
         id = wmodem.id,
         wrap = wmodem.wrap
+    },
+    wiredModem = {
+        id = wirmodem.id,
+        wrap = wirmodem.wrap
     },
     bsod = bsod,
     dw = dw,
@@ -175,7 +202,8 @@ _G.SolidityPools = {
         if config.webhook then
             table.insert(SolidityPools.discordCache, msg)
         end
-    end
+    end,
+    orderQueue = {}
 }
 
 local isCrashed = nil
@@ -206,6 +234,8 @@ end,function()
     local ok,err = xpcall(webhookManager, crash)
 end,function()
     local ok,err = xpcall(apiServer, crash)
+end,function()
+    local ok,err = xpcall(orderFullfill, crash)
 end)
 
 if isCrashed then

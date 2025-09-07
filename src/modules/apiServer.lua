@@ -120,14 +120,14 @@ local function onApiMessage(msgId, pos, data, replyChannel)
         if item then
             if amount < 0 then
                 local price, pricei = utils.calculatePrice(item, math.abs(amount), true)
-                local msg = generateResponse("item_info", data, {
+                local msg = generateResponse("price_ack", data, {
                     amount = price/1000000,
                     amountPerItem = pricei/1000000
                 }, userData.apiKey)
                 modem.transmit(replyChannel, config.apiChannel, msg)
             elseif amount > 0 then
                 local price, pricei = utils.calculatePrice(item, amount, false)
-                local msg = generateResponse("item_info", data, {
+                local msg = generateResponse("price_ack", data, {
                     amount = price/1000000,
                     amountPerItem = pricei/1000000
                 }, userData.apiKey)
@@ -295,6 +295,72 @@ local function onApiMessage(msgId, pos, data, replyChannel)
         }, userData.apiKey)
         modem.transmit(replyChannel, config.apiChannel, msg)
         SolidityPools.logDiscordMessage("User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) withdrew " .. (amount / 100) .. "kro to `" .. data.data.address .."`\nBalance: `" .. (rollback/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
+    elseif data.type == "buy" then
+        if (data.data.item == nil) or (data.data.amount == nil) then
+            local msg = generateResponse("error", data, { message = "Item or amount not specified.", error = "missing_data", data = { "item", "amount" } }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if type(data.data.item) ~= "string" then
+            local msg = generateResponse("error", data, { message = "Invalid item specified.", error = "invalid_data", data = "item" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local amount = tonumber(data.data.amount)
+        if (amount == nan) or (math.floor(amount) ~= amount) or (amount <= 0) then
+            local msg = generateResponse("error", data, { message = "Invalid amount specified.", error = "invalid_data", data = "amount" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if userData.apiChest == nil then
+            local msg = generateResponse("error", data, { message = "No API chest set. Please follow the documentation.", error = "no_api_chest" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if not userData.agreed then
+            local msg = generateResponse("error", data, { message = "You must agree to the terms and conditions before making a purchase.", error = "no_agreement" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if #SolidityPools.orderQueue >= 100 then
+            local msg = generateResponse("error", data, { message = "Too many orders in queue, please wait a little.", error = "too_many_orders" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local possible, item = utils.queryItem(data.data.item)
+        if item then
+            local orderId = math.floor(os.epoch("utc")/1000)..utils.bytesToHexString(SolidityPools.sha.digest("buy"..userData.uuid..data.data.item..amount..data.time)):sub(1,10)
+            table.insert(SolidityPools.orderQueue, {
+                type = "buy",
+                user = userData.uuid,
+                item = data.data.item,
+                amount = amount,
+                req = data,
+                rc = replyChannel,
+                id = orderId
+            })
+            local msg = generateResponse("order_queued", data, {
+                orderId = orderId,
+            }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            SolidityPools.logDiscordMessage("User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) queued a buy order: `" .. amount .. "x " .. item.name .. "` Order ID: `" .. orderId .. "`")
+        else
+            local bestMatch = nil
+            local bestPerc = 0
+            for k, v in pairs(possible) do
+                if v > bestPerc then
+                    bestPerc = v
+                    bestMatch = k
+                end
+            end
+            if bestPerc > 50 then
+                local msg = generateResponse("error", data, { message = "Item not found. Did you mean: " .. bestMatch .. "?", error = "item_not_found", suggestion = bestMatch }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            else
+                local msg = generateResponse("error", data, { message = "Item not found.", error = "item_not_found" }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            end
+        end
     else
         local msg = generateResponse("error", data, { message = "Unknown type.", error = "unknown_type" }, userData.apiKey)
         modem.transmit(replyChannel, config.apiChannel, msg)
@@ -318,6 +384,9 @@ local function apiServer()
     if (modems ~= 4) and config.apiEnabled then
         error("The amount of wireless modems must be 4")
     end
+    if peripheral.wrap(config.apiChest) == nil and config.apiEnabled then
+        error("The API chest is not connected")
+    end
     while true do
         local event, side, channel, replyChannel, message, distance = os.pullEvent("modem_message")
         for k,v in pairs(messages) do
@@ -325,7 +394,7 @@ local function apiServer()
                 messages[k] = nil
             end
         end
-        if config.apiEnabled and (channel == config.apiChannel) then
+        if config.apiEnabled and (channel == config.apiChannel) and (type(message) == "string") then
             local ok,data = pcall(textutils.unserialize, message)
             if ok then
                 if (data.computer ~= nil) and (data.computer ~= os.getComputerID()) and (data.time ~= nil) and (data.user ~= nil) and (data.hash ~= nil) and (data.protocol == "SPAPIv1") then

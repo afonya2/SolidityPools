@@ -65,6 +65,7 @@ local function loadUser(uuid)
             isBanned = nil,
             isApiBanned = nil,
             apiKey = nil,
+            apiChest = nil,
             agreed = false
         }
     end
