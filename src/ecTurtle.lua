@@ -33,6 +33,17 @@ while true do
                 else
                     wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "fail", message = "Something is already placed." }))
                 end
+            elseif data.mode == "break" then
+                local chest = peripheral.wrap(data.chest)
+                if turtle.detect() then
+                    turtle.dig()
+                    chest.pullItems(wirmodem.wrap.getNameLocal(), 1, 1, data.pos)
+                    wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "ok" }))
+                else
+                    wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "fail", message = "Nothing is placed." }))
+                end
+            else
+                wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "fail", message = "Invalid mode." }))
             end
         else
             print("Received invalid data: " .. data)

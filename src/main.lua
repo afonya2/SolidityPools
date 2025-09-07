@@ -52,7 +52,10 @@ local papsi = peripheral.getNames()
 for k,v in ipairs(papsi) do
     local t,t2 = peripheral.getType(v)
     if t2 == "inventory" then
-        if (v ~= config.apiChest) and (v:match("ender_storage") == nil) then
+        if v:match("ender_storage") ~= nil then
+            error("Ender storage detected, please remove it")
+        end
+        if (v ~= config.apiChest) then
             pepVerifier.storage = true
             table.insert(chests, v)
         end

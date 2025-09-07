@@ -19,6 +19,29 @@ local function doFulfillment(order, userData)
     local lmodem = SolidityPools.wiredModem.wrap
     local modem = SolidityPools.modem.wrap
     local config = SolidityPools.config
+
+    local possible, item, cat, itemk = utils.queryItem(order.item)
+    if item == nil then
+        local msg = generateResponse("order_failed", order.req, { message = "The requested item could not be found.", error = "order_item_not_found", orderId = order.id }, userData.apiKey)
+        modem.transmit(order.rc, config.apiChannel, msg)
+        SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Item not found`")
+        return
+    end
+    if math.min(item.count, item.allocated) < order.amount then
+        local msg = generateResponse("order_failed", order.req, { message = "The requested amount is not available.", error = "order_insufficient_stock", orderId = order.id }, userData.apiKey)
+        modem.transmit(order.rc, config.apiChannel, msg)
+        SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Insufficient stock`")
+        return
+    end
+    local price, pricei = utils.calculatePrice(item, order.amount, false)
+    if userData.balance < price then
+        local msg = generateResponse("order_failed", order.req, { message = "You do not have enough balance.", error = "order_insufficient_funds", orderId = order.id }, userData.apiKey)
+        modem.transmit(order.rc, config.apiChannel, msg)
+        SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Insufficient funds`")
+        return
+    end
+    SolidityPools.lockInv = true
+
     lmodem.transmit(2646, 2646, textutils.serialise({
         mode = "place",
         chest = config.apiChest,
@@ -30,6 +53,7 @@ local function doFulfillment(order, userData)
             local event,side,channel,replyChannel,message = os.pullEvent("modem_message")
             if (side == SolidityPools.wiredModem.id) and (channel == 2646) and (type(message) == "string") then
                 mmsg = message
+                os.sleep(1)
                 break
             end
         end
@@ -42,21 +66,62 @@ local function doFulfillment(order, userData)
         local msg = generateResponse("order_failed", order.req, { message = "An error occurred while fulfilling your order.", error = "order_internal_timeout", orderId = order.id }, userData.apiKey)
         modem.transmit(order.rc, config.apiChannel, msg)
         SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `timeout`")
+        SolidityPools.lockInv = false
         return
     end
     local ok, data = pcall(textutils.unserialize, mmsg)
     if ok then
         if data.mode == "ok" then
-            SolidityPools.lockInv = true
+            local echest = {id = nil, wrap = nil}
+            for k,v in ipairs(peripheral.getNames()) do
+                if v:match("ender_storage") ~= nil then
+                    local wrp = peripheral.wrap(v)
+                    echest.id = v
+                    echest.wrap = wrp
+                    break
+                end
+            end
+            if echest.id == nil then
+                local msg = generateResponse("order_failed", order.req, { message = "An error occurred while fulfilling your order.", error = "order_internal_error", orderId = order.id }, userData.apiKey)
+                modem.transmit(order.rc, config.apiChannel, msg)
+                SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `No ender chest found`")
+                SolidityPools.lockInv = false
+                return
+            end
+            local ai = item.allocated
+            local am = item.allocatedMoney
+            local pb = userData.balance
+            userData.balance = userData.balance - price
+            SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated - order.amount
+            SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + price
+            SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count - order.amount
+            utils.saveCategory(cat, SolidityPools.items[cat])
+            if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
+                SolidityPools.session.balance = userData.balance
+            end
+            utils.saveUser(userData.uuid, userData)
+            os.queueEvent("sp_render")
+            SolidityPools.storage.exportItems(echest.id, item.query, order.amount)
+            local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = order.amount, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
+            modem.transmit(order.rc, config.apiChannel, msg)
+            SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, bought `x" .. order.amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
+            SolidityPools.lockInv = false
+            lmodem.transmit(2646, 2646, textutils.serialise({
+                mode = "break",
+                chest = config.apiChest,
+                pos = userData.apiChest
+            }))
         elseif data.mode == "fail" then
             local msg = generateResponse("order_failed", order.req, { message = "An error occurred while fulfilling your order.", error = "order_internal_error", orderId = order.id }, userData.apiKey)
             modem.transmit(order.rc, config.apiChannel, msg)
             SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `" .. data.message .. "`")
+            SolidityPools.lockInv = false
         end
     else
         local msg = generateResponse("order_failed", order.req, { message = "An error occurred while fulfilling your order.", error = "order_internal_error", orderId = order.id }, userData.apiKey)
         modem.transmit(order.rc, config.apiChannel, msg)
         SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `" .. data .. "`")
+        SolidityPools.lockInv = false
     end
 end
 
