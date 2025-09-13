@@ -110,6 +110,9 @@ local function sessionTerminator()
 end
 
 local function sessionManager()
+    while not SolidityPools.itemsLoaded do
+        os.sleep(0)
+    end
     parallel.waitForAny(itemSell, sessionTimeout, sessionTerminator)
 end
 

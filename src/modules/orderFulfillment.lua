@@ -110,6 +110,7 @@ local function doFulfillment(order, userData)
                 modem.transmit(order.rc, config.apiChannel, msg)
                 SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, bought `x" .. order.amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
             elseif order.type == "sell" then
+                -- TODO: Move the items into a second chest where the calculations would be done
                 local ecInv = SolidityPools.BIL.createStorage({echest.id})
                 local ic = ecInv.getItemCount(item.query)
                 local actuallySold = math.min(ic, order.amount)
@@ -166,6 +167,9 @@ local function doFulfillment(order, userData)
 end
 
 local function orderFulfill()
+    while not SolidityPools.itemsLoaded do
+        os.sleep(0)
+    end
     local lmodem = SolidityPools.wiredModem.wrap
     lmodem.open(2646)
     while true do

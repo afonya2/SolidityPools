@@ -280,6 +280,14 @@ local function onCommand(user, args, data)
             chatbox.tell(user, "&cPlease specify a valid amount.", config.shopname, "format")
             return
         end
+        if not SolidityPools.kromerConnected then
+            chatbox.tell(user, "&cKromer API is not connected. Try again later.", config.shopname, "format")
+            return
+        end
+        if SolidityPools.lockInv then
+            chatbox.tell(user, "&cPlease wait a few seconds.", config.shopname, "format")
+            return
+        end
         if (amount*10000) > userData.balance then
             chatbox.tell(user, "&cYou don't have enough money to withdraw that amount.", config.shopname, "format")
             return
@@ -344,6 +352,9 @@ local function onCommand(user, args, data)
 end
 
 local function commandHandler()
+    while not SolidityPools.itemsLoaded do
+        os.sleep(0)
+    end
     helpText = [[Usage: `\]]..SolidityPools.config.command..[[ <command> [args...]`
 Available commands:
 - `help` - Display this message

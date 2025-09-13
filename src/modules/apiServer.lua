@@ -272,6 +272,16 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
         end
+        if not SolidityPools.kromerConnected then
+            local msg = generateResponse("error", data, { message = "Kromer API is not connected. Try again later.", error = "kromer_disconnected" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if SolidityPools.lockInv then
+            local msg = generateResponse("error", data, { message = "Please wait a few seconds.", error = "please_wait" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
         if (amount*10000) > userData.balance then
             local msg = generateResponse("error", data, { message = "Insufficient balance.", error = "insufficient_balance" }, userData.apiKey)
             modem.transmit(replyChannel, config.apiChannel, msg)
@@ -446,6 +456,9 @@ local function onApiMessage(msgId, pos, data, replyChannel)
 end
 
 local function apiServer()
+    while not SolidityPools.itemsLoaded do
+        os.sleep(0)
+    end
     local config = SolidityPools.config
     local pers = peripheral.getNames()
     local modems = 0

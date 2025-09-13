@@ -320,6 +320,16 @@ local function render()
 end
 
 local function frontend()
+    local monitor = SolidityPools.monitor.wrap
+    monitor.setBackgroundColor(colors.black)
+    monitor.setTextColor(colors.white)
+    monitor.setTextScale(0.5)
+    monitor.clear()
+    monitor.setCursorPos(1,1)
+    monitor.write("Loading...")
+    while not SolidityPools.itemsLoaded do
+        os.sleep(0)
+    end
     render()
     while true do
         local event, p1, p2, p3 = os.pullEvent()
