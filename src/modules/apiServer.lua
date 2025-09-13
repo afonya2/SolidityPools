@@ -28,12 +28,24 @@ local function onApiMessage(msgId, pos, data, replyChannel)
     local rawData = utils.copy(data)
     rawData.hash = nil
     local rawHash = utils.bytesToHexString(SolidityPools.sha.digest(userData.apiKey..textutils.serialise(rawData, { allow_repetitions = true, compact = true })))
+    local apiMsg = textutils.serialise(data, { allow_repetitions = true })
+    local apiMsgCut = {}
+    while #apiMsg > 0 do
+        table.insert(apiMsgCut, apiMsg:sub(1, 750))
+        apiMsg = apiMsg:sub(751)
+    end
     if rawHash ~= data.hash then
         print("Hash error: "..rawHash.." vs "..data.hash)
-        SolidityPools.logDiscordMessage("X: `" .. pos.x .. "` Y: `" .. pos.y .. "` Z: `" .. pos.z .. "` User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) API Authentication failed.")
+        SolidityPools.logDiscordMessage("X: `" .. pos.x .. "` Y: `" .. pos.y .. "` Z: `" .. pos.z .. "` User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) API Authentication failed.\n```"..apiMsgCut[1].."```")
+        for i=2,#apiMsgCut do
+            SolidityPools.logDiscordMessage("```"..apiMsgCut[i].."```")
+        end
         return
     else
-        SolidityPools.logDiscordMessage("X: `" .. pos.x .. "` Y: `" .. pos.y .. "` Z: `" .. pos.z .. "` User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) API request: `" .. data.type .. "`")
+        SolidityPools.logDiscordMessage("X: `" .. pos.x .. "` Y: `" .. pos.y .. "` Z: `" .. pos.z .. "` User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) API request:\n```" .. apiMsgCut[1] .. "```")
+        for i=2,#apiMsgCut do
+            SolidityPools.logDiscordMessage("```"..apiMsgCut[i].."```")
+        end
     end
     if userData.isBanned ~= nil then
         local msg = generateResponse("error", data, { message = "You are banned from using the shop.", error = "banned", reason = userData.isBanned }, userData.apiKey)
@@ -344,6 +356,72 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             }, userData.apiKey)
             modem.transmit(replyChannel, config.apiChannel, msg)
             SolidityPools.logDiscordMessage("User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) queued a buy order: `" .. amount .. "x " .. item.name .. "` Order ID: `" .. orderId .. "`")
+        else
+            local bestMatch = nil
+            local bestPerc = 0
+            for k, v in pairs(possible) do
+                if v > bestPerc then
+                    bestPerc = v
+                    bestMatch = k
+                end
+            end
+            if bestPerc > 50 then
+                local msg = generateResponse("error", data, { message = "Item not found. Did you mean: " .. bestMatch .. "?", error = "item_not_found", suggestion = bestMatch }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            else
+                local msg = generateResponse("error", data, { message = "Item not found.", error = "item_not_found" }, userData.apiKey)
+                modem.transmit(replyChannel, config.apiChannel, msg)
+            end
+        end
+    elseif data.type == "sell" then
+        if (data.data.item == nil) or (data.data.amount == nil) then
+            local msg = generateResponse("error", data, { message = "Item or amount not specified.", error = "missing_data", data = { "item", "amount" } }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if type(data.data.item) ~= "string" then
+            local msg = generateResponse("error", data, { message = "Invalid item specified.", error = "invalid_data", data = "item" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local amount = tonumber(data.data.amount)
+        if (amount == nan) or (math.floor(amount) ~= amount) or (amount <= 0) then
+            local msg = generateResponse("error", data, { message = "Invalid amount specified.", error = "invalid_data", data = "amount" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if userData.apiChest == nil then
+            local msg = generateResponse("error", data, { message = "No API chest set. Please follow the documentation.", error = "no_api_chest" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if not userData.agreed then
+            local msg = generateResponse("error", data, { message = "You must agree to the terms and conditions before selling an item.", error = "no_agreement" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        if #SolidityPools.orderQueue >= 100 then
+            local msg = generateResponse("error", data, { message = "Too many orders in queue, please wait a little.", error = "too_many_orders" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
+        local possible, item = utils.queryItem(data.data.item)
+        if item then
+            local orderId = math.floor(os.epoch("utc")/1000)..utils.bytesToHexString(SolidityPools.sha.digest("sell"..userData.uuid..data.data.item..amount..data.time)):sub(1,10)
+            table.insert(SolidityPools.orderQueue, {
+                type = "sell",
+                user = userData.uuid,
+                item = data.data.item,
+                amount = amount,
+                req = data,
+                rc = replyChannel,
+                id = orderId
+            })
+            local msg = generateResponse("order_queued", data, {
+                orderId = orderId,
+            }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            SolidityPools.logDiscordMessage("User: `" .. userData.name:lower() .. "` (`" .. userData.uuid .. "`) queued a sell order: `" .. amount .. "x " .. item.name .. "` Order ID: `" .. orderId .. "`")
         else
             local bestMatch = nil
             local bestPerc = 0

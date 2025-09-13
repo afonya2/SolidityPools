@@ -27,18 +27,20 @@ local function doFulfillment(order, userData)
         SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Item not found`")
         return
     end
-    if math.min(item.count, item.allocated) < order.amount then
-        local msg = generateResponse("order_failed", order.req, { message = "The requested amount is not available.", error = "order_insufficient_stock", orderId = order.id }, userData.apiKey)
-        modem.transmit(order.rc, config.apiChannel, msg)
-        SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Insufficient stock`")
-        return
-    end
-    local price, pricei = utils.calculatePrice(item, order.amount, false)
-    if userData.balance < price then
-        local msg = generateResponse("order_failed", order.req, { message = "You do not have enough balance.", error = "order_insufficient_funds", orderId = order.id }, userData.apiKey)
-        modem.transmit(order.rc, config.apiChannel, msg)
-        SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Insufficient funds`")
-        return
+    if order.type == "buy" then
+        if math.min(item.count, item.allocated) < order.amount then
+            local msg = generateResponse("order_failed", order.req, { message = "The requested amount is not available.", error = "order_insufficient_stock", orderId = order.id }, userData.apiKey)
+            modem.transmit(order.rc, config.apiChannel, msg)
+            SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Insufficient stock`")
+            return
+        end
+        local price, pricei = utils.calculatePrice(item, order.amount, false)
+        if userData.balance < price then
+            local msg = generateResponse("order_failed", order.req, { message = "You do not have enough balance.", error = "order_insufficient_funds", orderId = order.id }, userData.apiKey)
+            modem.transmit(order.rc, config.apiChannel, msg)
+            SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Insufficient funds`")
+            return
+        end
     end
     SolidityPools.lockInv = true
 
@@ -91,20 +93,46 @@ local function doFulfillment(order, userData)
             local ai = item.allocated
             local am = item.allocatedMoney
             local pb = userData.balance
-            userData.balance = userData.balance - price
-            SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated - order.amount
-            SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + price
-            SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count - order.amount
-            utils.saveCategory(cat, SolidityPools.items[cat])
-            if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
-                SolidityPools.session.balance = userData.balance
+            if order.type == "buy" then
+                local price, pricei = utils.calculatePrice(item, order.amount, false)
+                userData.balance = userData.balance - price
+                SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated - order.amount
+                SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + price
+                SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count - order.amount
+                utils.saveCategory(cat, SolidityPools.items[cat])
+                if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
+                    SolidityPools.session.balance = userData.balance
+                end
+                utils.saveUser(userData.uuid, userData)
+                os.queueEvent("sp_render")
+                SolidityPools.storage.exportItems(echest.id, item.query, order.amount)
+                local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = order.amount, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
+                modem.transmit(order.rc, config.apiChannel, msg)
+                SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, bought `x" .. order.amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
+            elseif order.type == "sell" then
+                local ecInv = SolidityPools.BIL.createStorage({echest.id})
+                local ic = ecInv.getItemCount(item.query)
+                local actuallySold = math.min(ic, order.amount)
+                SolidityPools.storage.importItems(echest.id, item.query, actuallySold)
+                local price, pricei = utils.calculatePrice(item, actuallySold, true)
+                userData.balance = userData.balance + price
+                SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated + actuallySold
+                SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney - price
+                SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count + actuallySold
+                utils.saveCategory(cat, SolidityPools.items[cat])
+                if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
+                    SolidityPools.session.balance = userData.balance
+                end
+                utils.saveUser(userData.uuid, userData)
+                os.queueEvent("sp_render")
+                local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = actuallySold, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
+                modem.transmit(order.rc, config.apiChannel, msg)
+                SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, sold `x" .. actuallySold .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
+            else
+                local msg = generateResponse("order_failed", order.req, { message = "An error occurred while fulfilling your order.", error = "order_internal_error", orderId = order.id }, userData.apiKey)
+                modem.transmit(order.rc, config.apiChannel, msg)
+                SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Unknown order type`")
             end
-            utils.saveUser(userData.uuid, userData)
-            os.queueEvent("sp_render")
-            SolidityPools.storage.exportItems(echest.id, item.query, order.amount)
-            local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = order.amount, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
-            modem.transmit(order.rc, config.apiChannel, msg)
-            SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, bought `x" .. order.amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
             SolidityPools.lockInv = false
             lmodem.transmit(2646, 2646, textutils.serialise({
                 mode = "break",
