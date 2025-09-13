@@ -117,6 +117,13 @@ local function doFulfillment(order, userData)
                     local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = actuallySold, price = 0, pricePerItem = 0 }, userData.apiKey)
                     modem.transmit(order.rc, config.apiChannel, msg)
                     SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, no items in ender chest to sell.")
+                    SolidityPools.lockInv = false
+                    lmodem.transmit(2646, 2646, textutils.serialise({
+                        mode = "break",
+                        chest = config.apiChest,
+                        pos = userData.apiChest
+                    }))
+                    return
                 end
                 SolidityPools.storage.importItems(echest.id, item.query, actuallySold)
                 local price, pricei = utils.calculatePrice(item, actuallySold, true)
