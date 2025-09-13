@@ -113,6 +113,11 @@ local function doFulfillment(order, userData)
                 local ecInv = SolidityPools.BIL.createStorage({echest.id})
                 local ic = ecInv.getItemCount(item.query)
                 local actuallySold = math.min(ic, order.amount)
+                if actuallySold < 1 then
+                    local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = actuallySold, price = 0, pricePerItem = 0 }, userData.apiKey)
+                    modem.transmit(order.rc, config.apiChannel, msg)
+                    SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, no items in ender chest to sell.")
+                end
                 SolidityPools.storage.importItems(echest.id, item.query, actuallySold)
                 local price, pricei = utils.calculatePrice(item, actuallySold, true)
                 userData.balance = userData.balance + price
