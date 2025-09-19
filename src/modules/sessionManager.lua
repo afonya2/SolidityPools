@@ -28,12 +28,22 @@ local function onItemPickup()
         local soldCount = math.min(itemCount, highestItemAccepted)
         if soldCount < 1 then
             chatbox.tell(SolidityPools.session.username, "&cItem limit reached. The shop is not accepting any more of this item.", config.shopname, "format")
+            SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) tried to sell `x" .. soldCount .. " " .. item.name .. "` but the item limit was reached.")
             turtle.drop()
             SolidityPools.lockInv = false
             return
         end
         local remainder = itemCount - soldCount
         local price, pricei, tfees = utils.calculatePrice(item, soldCount, true)
+        local ok, err = pcall(SolidityPools.storage.importItems, "turtle", item.query, soldCount)
+        SolidityPools.defragNeeded = true
+        if not ok then
+            chatbox.tell(SolidityPools.session.username, "&cError while importing items: " .. err, config.shopname, "format")
+            SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) tried to sell `x" .. soldCount .. " " .. item.name .. "` but the import failed: " .. err)
+            turtle.drop()
+            SolidityPools.lockInv = false
+            return
+        end
         local userData = utils.loadUser(SolidityPools.session.uuid)
         local ai = item.allocated
         local am = item.allocatedMoney
@@ -54,8 +64,6 @@ local function onItemPickup()
         if remainder > 0 then
             turtle.drop(remainder)
         end
-        SolidityPools.storage.importItems("turtle", item.query, soldCount)
-        SolidityPools.defragNeeded = true
         SolidityPools.lockInv = false
     else
         chatbox.tell(SolidityPools.session.username, "&cThe shop doesn't purchase this item.", config.shopname, "format")

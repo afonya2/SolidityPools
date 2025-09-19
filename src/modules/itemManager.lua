@@ -5,6 +5,7 @@ local function itemManager()
             lastRescan = os.clock()
             if SolidityPools.defragNeeded then
                 SolidityPools.storage.defragStorage()
+                SolidityPools.defragNeeded = false
             else
                 SolidityPools.storage.rescanAll()
             end

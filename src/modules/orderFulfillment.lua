@@ -158,8 +158,24 @@ local function doFulfillment(order, userData)
                     return
                 end
                 local remainder = actuallySold - soldCount
-                SolidityPools.storage.importItems(config.holderChest, item.query, soldCount)
+                local ok2, err = pcall(SolidityPools.storage.importItems, config.holderChest, item.query, soldCount)
                 SolidityPools.defragNeeded = true
+                if not ok2 then
+                    local msg = generateResponse("order_failed", order.req, { message = "An error occurred while importing items: " .. err, error = "order_item_import_failed", orderId = order.id }, userData.apiKey)
+                    modem.transmit(order.rc, config.apiChannel, msg)
+                    SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `"..err.."`")
+                    local holdWrp = peripheral.wrap(config.holderChest)
+                    for k,v in pairs(holdWrp.list()) do
+                        holdWrp.pushItems(echest.id, k)
+                    end
+                    SolidityPools.lockInv = false
+                    lmodem.transmit(2646, 2646, textutils.serialise({
+                        mode = "break",
+                        chest = config.apiChest,
+                        pos = userData.apiChest
+                    }))
+                    return
+                end
                 local price, pricei, tfees = utils.calculatePrice(item, soldCount, true)
                 userData.balance = userData.balance + price
                 SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated + soldCount
