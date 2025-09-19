@@ -239,6 +239,18 @@ local function bytesToHexString(tbl)
     return out
 end
 
+local function getOrdersOfUser(uuid)
+    local orders = {}
+    for k,v in ipairs(SolidityPools.orderQueue) do
+        if v.user == uuid then
+            local ordr = copy(v, true)
+            ordr.expectedTime = math.floor(os.epoch("utc")/1000) + (k * 30)
+            table.insert(orders, ordr)
+        end
+    end
+    return orders
+end
+
 return {
     calculatePrice = calculatePrice,
     isPlayerClose = isPlayerClose,
@@ -255,5 +267,6 @@ return {
     copy = copy,
     positionMessage = positionMessage,
     base10ToBase16 = base10ToBase16,
-    bytesToHexString = bytesToHexString
+    bytesToHexString = bytesToHexString,
+    getOrdersOfUser = getOrdersOfUser
 }

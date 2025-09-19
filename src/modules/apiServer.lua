@@ -349,6 +349,11 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
         end
+        if #utils.getOrdersOfUser(userData.uuid) >= 10 then
+            local msg = generateResponse("error", data, { message = "Too many active orders, please wait a moment.", error = "too_many_active_orders" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
         local possible, item = utils.queryItem(data.data.item)
         if item then
             local orderId = math.floor(os.epoch("utc")/1000)..utils.bytesToHexString(SolidityPools.sha.digest("buy"..userData.uuid..data.data.item..amount..data.time)):sub(1,10)
@@ -415,6 +420,11 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
         end
+        if #utils.getOrdersOfUser(userData.uuid) >= 10 then
+            local msg = generateResponse("error", data, { message = "Too many active orders, please wait a moment.", error = "too_many_active_orders" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
         local possible, item = utils.queryItem(data.data.item)
         if item then
             local orderId = math.floor(os.epoch("utc")/1000)..utils.bytesToHexString(SolidityPools.sha.digest("sell"..userData.uuid..data.data.item..amount..data.time)):sub(1,10)
@@ -449,6 +459,22 @@ local function onApiMessage(msgId, pos, data, replyChannel)
                 modem.transmit(replyChannel, config.apiChannel, msg)
             end
         end
+    elseif data.type == "getOrders" then
+        local orders = utils.getOrdersOfUser(userData.uuid)
+        local outOrders = {}
+        for k,v in ipairs(orders) do
+            table.insert(outOrders, {
+                id = v.id,
+                item = v.item,
+                amount = v.amount,
+                expectedTime = v.expectedTime,
+                type = v.type
+            })
+        end
+        local msg = generateResponse("orders_ack", data, {
+            orders = outOrders
+        }, userData.apiKey)
+        modem.transmit(replyChannel, config.apiChannel, msg)
     else
         local msg = generateResponse("error", data, { message = "Unknown type.", error = "unknown_type" }, userData.apiKey)
         modem.transmit(replyChannel, config.apiChannel, msg)
