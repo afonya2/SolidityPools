@@ -180,6 +180,11 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             return
         end
         price = math.floor(price * 1000000)
+        if price <= 0 then
+            local msg = generateResponse("error", data, { message = "Invalid price specified.", error = "invalid_data", data = "price" }, userData.apiKey)
+            modem.transmit(replyChannel, config.apiChannel, msg)
+            return
+        end
         local possible, item = utils.queryItem(data.data.item)
         if item then
             local most = 0
@@ -349,7 +354,7 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
         end
-        if #utils.getOrdersOfUser(userData.uuid) >= 10 then
+        if #utils.getOrdersOfUser(userData.uuid) >= 5 then
             local msg = generateResponse("error", data, { message = "Too many active orders, please wait a moment.", error = "too_many_active_orders" }, userData.apiKey)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
@@ -420,7 +425,7 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
         end
-        if #utils.getOrdersOfUser(userData.uuid) >= 10 then
+        if #utils.getOrdersOfUser(userData.uuid) >= 5 then
             local msg = generateResponse("error", data, { message = "Too many active orders, please wait a moment.", error = "too_many_active_orders" }, userData.apiKey)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
@@ -503,6 +508,12 @@ local function apiServer()
     end
     if peripheral.wrap(config.apiChest) == nil and config.apiEnabled then
         error("The API chest is not connected")
+    end
+    if peripheral.wrap(config.holderChest) == nil and config.apiEnabled then
+        error("The Holder chest is not connected")
+    end
+    while not SolidityPools.itemsLoaded do
+        os.sleep(0)
     end
     while true do
         local event, side, channel, replyChannel, message, distance = os.pullEvent("modem_message")

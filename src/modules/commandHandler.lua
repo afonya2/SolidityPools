@@ -159,6 +159,10 @@ local function onCommand(user, args, data)
             return
         end
         price = math.floor(price * 1000000)
+        if price <= 0 then
+            chatbox.tell(user, "&cPlease specify a valid price.", config.shopname, "format")
+            return
+        end
         local possible, item = utils.queryItem(args[2])
         if item then
             local most = 0
