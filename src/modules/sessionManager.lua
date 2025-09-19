@@ -13,6 +13,85 @@ local function onItemPickup()
     turtle.select(1)
     local itemData = turtle.getItemDetail(1, true)
     local itemCount = turtle.getItemCount(1)
+    if (itemData.name == "sc-goodies:ender_storage") and (config.apiEnabled) then
+        local userData = utils.loadUser(SolidityPools.session.uuid)
+        if userData.apiChest ~= nil then
+            chatbox.tell(SolidityPools.session.username, "&cYou have already set your API chest. To change it, run &7\\"..config.command.." api chest&c.", config.shopname, "format")
+            turtle.drop()
+            SolidityPools.lockInv = false
+            return
+        end
+        local users = fs.list("/users")
+        local nextPos = 1
+        for _, user in ipairs(users) do
+            local uData = utils.loadUser(user:gsub(".conf",""))
+            if uData.apiChest ~= nil then
+                nextPos = math.max(nextPos, uData.apiChest+1)
+                break
+            end
+        end
+        local ecChest = peripheral.wrap(config.apiChest)
+        if nextPos > ecChest.size() then
+            chatbox.tell(SolidityPools.session.username, "&cNo available API chest slots. Please contact an administrator.", config.shopname, "format")
+            SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) wanted to set their API chest, but no slots were available.")
+            turtle.drop()
+            SolidityPools.lockInv = false
+            return
+        end
+        ecChest.pullItems(SolidityPools.wiredModem.wrap.getNameLocal(), 1, 1, nextPos)
+        
+        local lmodem = SolidityPools.wiredModem.wrap
+        lmodem.transmit(2646, 2646, textutils.serialise({
+            mode = "check",
+            chest = config.apiChest,
+            pos = nextPos,
+            user = SolidityPools.session.uuid
+        }))
+        local mmsg = nil
+        local function a()
+            while true do
+                local event,side,channel,replyChannel,message = os.pullEvent("modem_message")
+                if (side == SolidityPools.wiredModem.id) and (channel == 2646) and (type(message) == "string") then
+                    mmsg = message
+                    os.sleep(1)
+                    break
+                end
+            end
+        end
+        local function b()
+            os.sleep(10)
+        end
+        parallel.waitForAny(a, b)
+        if mmsg == nil then
+            chatbox.tell(SolidityPools.session.username, "&cTimeout while setting your API chest. Please try again later.", config.shopname, "format")
+            SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) wanted to set their API chest, but the operation timed out.")
+            ecChest.pushItems(SolidityPools.wiredModem.wrap.getNameLocal(), nextPos, 1, 1)
+            turtle.drop()
+            SolidityPools.lockInv = false
+            return
+        end
+        local ok, data = pcall(textutils.unserialize, mmsg)
+        if ok then
+            if data.mode == "ok" then
+                userData.apiChest = nextPos
+                utils.saveUser(SolidityPools.session.uuid, userData)
+                chatbox.tell(SolidityPools.session.username, "&aYour API chest has been set successfully!", config.shopname, "format")
+                SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) set their API chest to slot `"..nextPos.."`.")
+            elseif data.mode == "failed" then
+                chatbox.tell(SolidityPools.session.username, "&cPlease use your own chest, and make sure it's a private chest.", config.shopname, "format")
+                SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) wanted to set their API chest, but the operation failed: " .. data.message)
+                ecChest.pushItems(SolidityPools.wiredModem.wrap.getNameLocal(), nextPos, 1, 1)
+                turtle.drop()
+            end
+        else
+            chatbox.tell(SolidityPools.session.username, "&cError while setting your API chest. Please try again later.", config.shopname, "format")
+            SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) wanted to set their API chest, but the operation failed: " .. data)
+            ecChest.pushItems(SolidityPools.wiredModem.wrap.getNameLocal(), nextPos, 1, 1)
+            turtle.drop()
+        end
+        SolidityPools.lockInv = false
+        return
+    end
     local item,icat,ipos = nil, nil, nil
     for k, v in pairs(SolidityPools.items) do
         for kk, vv in ipairs(v) do

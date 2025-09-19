@@ -343,6 +343,24 @@ local function onCommand(user, args, data)
                 end
                 chatbox.tell(user, "Your UUID is: `" .. data.user.uuid .. "`\nYour API key is: `" .. userData.apiKey .. "`", config.shopname)
             end
+        elseif args[2] == "chest" then
+            if userData.apiChest == nil then
+                chatbox.tell(user, "&cYou don't have an API chest. &aDrop an enderchest owned by you above the turtle!", config.shopname, "format")
+                return
+            end
+            local ecChest = peripheral.wrap(config.apiChest)
+            local itm = ecChest.getItemDetail(userData.apiChest)
+            if itm == nil then
+                chatbox.tell(user, "&cYour API chest can not be found. Please try again later!", config.shopname, "format")
+                SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) has an invalid API chest: `" .. userData.apiChest .. "`")
+                return
+            end
+            ecChest.pushItems(SolidityPools.wiredModem.wrap.getNameLocal(), userData.apiChest, 1, 1)
+            userData.apiChest = nil
+            utils.saveUser(data.user.uuid, userData)
+            turtle.drop()
+            chatbox.tell(user, "&aYou have successfully disconnected your API chest.", config.shopname, "format")
+            SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) have disconnected their API chest.")
         else
             chatbox.tell(user, "You can read the api documentation here: https://github.com/afonya2/SolidityPools/blob/v2/api/README.md", config.shopname)
         end
@@ -377,6 +395,7 @@ Available commands:
 - `api` - Display API information
 - `api key` - Display your API key
 - `api key reset` - Reset your API key
+- `api chest` - Disconnect your API chest
 - `tos` - Display the Terms and Conditions
 - `money` - Display the money allocations
 ]]

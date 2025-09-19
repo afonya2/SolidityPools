@@ -42,6 +42,27 @@ while true do
                 else
                     wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "fail", message = "Nothing is placed." }))
                 end
+            elseif data.mode == "check" then
+                local chest = peripheral.wrap(data.chest)
+                if not turtle.detect() then
+                    if chest.getItemDetail(data.pos) ~= nil then
+                        chest.pushItems(wirmodem.wrap.getNameLocal(), data.pos, 1, 1)
+                        turtle.place()
+                        os.sleep(1)
+                        local wrp = peripheral.wrap("front")
+                        if wrp.isPersonal() and wrp.getOwner() == data.user then
+                            wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "ok" }))
+                        else
+                            wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "fail", message = "The item is not owned by the user." }))
+                        end
+                        turtle.dig()
+                        chest.pullItems(wirmodem.wrap.getNameLocal(), 1, 1, data.pos)
+                    else
+                        wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "fail", message = "No item found in the specified slot." }))
+                    end
+                else
+                    wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "fail", message = "Something is already placed." }))
+                end
             else
                 wirmodem.wrap.transmit(replyChannel, 2646, textutils.serialise({ mode = "fail", message = "Invalid mode." }))
             end

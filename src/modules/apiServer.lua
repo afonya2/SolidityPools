@@ -340,7 +340,7 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             return
         end
         if userData.apiChest == nil then
-            local msg = generateResponse("error", data, { message = "No API chest set. Please follow the documentation.", error = "no_api_chest" }, userData.apiKey)
+            local msg = generateResponse("error", data, { message = "No API chest set. Drop an enderchest owned by you above the turtle!", error = "no_api_chest" }, userData.apiKey)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
         end
@@ -411,7 +411,7 @@ local function onApiMessage(msgId, pos, data, replyChannel)
             return
         end
         if userData.apiChest == nil then
-            local msg = generateResponse("error", data, { message = "No API chest set. Please follow the documentation.", error = "no_api_chest" }, userData.apiKey)
+            local msg = generateResponse("error", data, { message = "No API chest set. Drop an enderchest owned by you above the turtle!", error = "no_api_chest" }, userData.apiKey)
             modem.transmit(replyChannel, config.apiChannel, msg)
             return
         end
