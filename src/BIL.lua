@@ -383,6 +383,33 @@ function BIL.createStorage(storages)
         end
         return limit
     end
+    function out.defragStorage()
+        local function matchItem(item, query)
+            for k,v in pairs(query) do
+                if (k ~= "count") and (item[k] ~= v) then
+                    return false
+                end
+            end
+            return true
+        end
+        for k,v in ipairs(out.storages) do
+            for kk,vv in pairs(out.itemCache[v.id]) do
+                local limit = v.wrap.getItemLimit(kk)
+                if vv.count < limit then
+                    for kkk,vvv in ipairs(out.storages) do
+                        for kkkk,vvvv in pairs(out.itemCache[vvv.id]) do
+                            if (k < kkk) or (kk < kkkk) then
+                                if matchItem(vvvv, vv) then
+                                    vvv.wrap.pushItems(v.id, kkkk, 64, kk)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        out.rescanAll()
+    end
     out.rescanAll()
     return out
 end

@@ -206,7 +206,8 @@ _G.SolidityPools = {
             table.insert(SolidityPools.discordCache, msg .. " @ `" .. os.date("%Y-%m-%d %H:%M:%S") .. "`")
         end
     end,
-    orderQueue = {}
+    orderQueue = {},
+    defragNeeded = false
 }
 
 local isCrashed = nil

@@ -55,6 +55,7 @@ local function onItemPickup()
             turtle.drop(remainder)
         end
         SolidityPools.storage.importItems("turtle", item.query, soldCount)
+        SolidityPools.defragNeeded = true
         SolidityPools.lockInv = false
     else
         chatbox.tell(SolidityPools.session.username, "&cThe shop doesn't purchase this item.", config.shopname, "format")

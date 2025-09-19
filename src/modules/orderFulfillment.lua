@@ -159,6 +159,7 @@ local function doFulfillment(order, userData)
                 end
                 local remainder = actuallySold - soldCount
                 SolidityPools.storage.importItems(config.holderChest, item.query, soldCount)
+                SolidityPools.defragNeeded = true
                 local price, pricei, tfees = utils.calculatePrice(item, soldCount, true)
                 userData.balance = userData.balance + price
                 SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated + soldCount

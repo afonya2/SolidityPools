@@ -3,7 +3,11 @@ local function itemManager()
     while true do
         if os.clock() - lastRescan > 20 then
             lastRescan = os.clock()
-            SolidityPools.storage.rescanAll()
+            if SolidityPools.defragNeeded then
+                SolidityPools.storage.defragStorage()
+            else
+                SolidityPools.storage.rescanAll()
+            end
             for k, v in pairs(SolidityPools.items) do
                 for kk,vv in ipairs(v) do
                     local count = SolidityPools.storage.getItemCount(vv.query)
