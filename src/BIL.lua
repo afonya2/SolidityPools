@@ -81,10 +81,10 @@ local function generateTurtleInvWrap(tid)
         return llist
     end
     out.getItemDetail = function(slot)
-        return turtle.getItemDetail(i, true)
+        return turtle.getItemDetail(slot, true)
     end
     out.getItemLimit = function(slot)
-        return turtle.getItemDetail(i, true).maxCount
+        return turtle.getItemDetail(slot, true).maxCount
     end
     out.pushItems = function(toName, fromSlot, limit, toSlot)
         local wrap = peripheral.wrap(toName)
