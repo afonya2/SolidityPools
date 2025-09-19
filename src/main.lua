@@ -55,7 +55,7 @@ for k,v in ipairs(papsi) do
         if v:match("ender_storage") ~= nil then
             error("Ender storage detected, please remove it")
         end
-        if (v ~= config.apiChest) then
+        if (v ~= config.apiChest) and (v ~= config.holderChest) then
             pepVerifier.storage = true
             table.insert(chests, v)
         end
@@ -203,7 +203,7 @@ _G.SolidityPools = {
     discordCache = {},
     logDiscordMessage = function(msg)
         if config.webhook then
-            table.insert(SolidityPools.discordCache, msg)
+            table.insert(SolidityPools.discordCache, msg .. " @ `" .. os.date("%Y-%m-%d %H:%M:%S") .. "`")
         end
     end,
     orderQueue = {}

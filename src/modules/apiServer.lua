@@ -31,8 +31,8 @@ local function onApiMessage(msgId, pos, data, replyChannel)
     local apiMsg = textutils.serialise(data, { allow_repetitions = true })
     local apiMsgCut = {}
     while #apiMsg > 0 do
-        table.insert(apiMsgCut, apiMsg:sub(1, 750))
-        apiMsg = apiMsg:sub(751)
+        table.insert(apiMsgCut, apiMsg:sub(1, 500))
+        apiMsg = apiMsg:sub(501)
     end
     if rawHash ~= data.hash then
         print("Hash error: "..rawHash.." vs "..data.hash)

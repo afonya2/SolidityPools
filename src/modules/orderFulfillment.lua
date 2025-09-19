@@ -110,9 +110,19 @@ local function doFulfillment(order, userData)
                 modem.transmit(order.rc, config.apiChannel, msg)
                 SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, bought `x" .. order.amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
             elseif order.type == "sell" then
-                -- TODO: Move the items into a second chest where the calculations would be done
-                local ecInv = SolidityPools.BIL.createStorage({echest.id})
-                local ic = ecInv.getItemCount(item.query)
+                local ecList = echest.wrap.list()
+                local limit = order.amount
+                for k,v in pairs(ecList) do
+                    if SolidityPools.BIL.isItemMatch(v, item.query) then
+                        local moved = echest.wrap.pushItems(config.holderChest, k, math.max(limit, 0))
+                        limit = limit - moved
+                        if limit < 1 then
+                            break
+                        end
+                    end
+                end
+                local holdInv = SolidityPools.BIL.createStorage({config.holderChest})
+                local ic = holdInv.getItemCount(item.query)
                 local actuallySold = math.min(ic, order.amount)
                 if actuallySold < 1 then
                     local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = actuallySold, price = 0, pricePerItem = 0 }, userData.apiKey)
@@ -126,21 +136,46 @@ local function doFulfillment(order, userData)
                     }))
                     return
                 end
-                SolidityPools.storage.importItems(echest.id, item.query, actuallySold)
-                local price, pricei = utils.calculatePrice(item, actuallySold, true)
+                local highestItemAccepted = item.itemLimit - item.count
+                local soldCount = math.min(actuallySold, highestItemAccepted)
+                if soldCount < 1 then
+                    local msg = generateResponse("order_failed", order.req, { message = "Item limit reached. The shop is not accepting any more of this item.", error = "order_item_limit_reached", orderId = order.id }, userData.apiKey)
+                    modem.transmit(order.rc, config.apiChannel, msg)
+                    SolidityPools.logDiscordMessage("Error while fulfilling order: `" .. order.id .. "`, error: `Item limit reached`")
+                    local holdWrp = peripheral.wrap(config.holderChest)
+                    for k,v in pairs(holdWrp.list()) do
+                        holdWrp.pushItems(echest.id, k)
+                    end
+                    SolidityPools.lockInv = false
+                    lmodem.transmit(2646, 2646, textutils.serialise({
+                        mode = "break",
+                        chest = config.apiChest,
+                        pos = userData.apiChest
+                    }))
+                    return
+                end
+                local remainder = actuallySold - soldCount
+                SolidityPools.storage.importItems(config.holderChest, item.query, soldCount)
+                local price, pricei = utils.calculatePrice(item, soldCount, true)
                 userData.balance = userData.balance + price
-                SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated + actuallySold
+                SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated + soldCount
                 SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney - price
-                SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count + actuallySold
+                SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count + soldCount
                 utils.saveCategory(cat, SolidityPools.items[cat])
                 if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
                     SolidityPools.session.balance = userData.balance
                 end
                 utils.saveUser(userData.uuid, userData)
                 os.queueEvent("sp_render")
-                local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = actuallySold, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
+                if remainder > 0 then
+                    local holdWrp = peripheral.wrap(config.holderChest)
+                    for k,v in pairs(holdWrp.list()) do
+                        holdWrp.pushItems(echest.id, v.slot)
+                    end
+                end
+                local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = soldCount, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
                 modem.transmit(order.rc, config.apiChannel, msg)
-                SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, sold `x" .. actuallySold .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
+                SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, sold `x" .. soldCount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
             else
                 local msg = generateResponse("order_failed", order.req, { message = "An error occurred while fulfilling your order.", error = "order_internal_error", orderId = order.id }, userData.apiKey)
                 modem.transmit(order.rc, config.apiChannel, msg)
