@@ -94,16 +94,19 @@ local function doFulfillment(order, userData)
             local am = item.allocatedMoney
             local pb = userData.balance
             if order.type == "buy" then
-                local price, pricei = utils.calculatePrice(item, order.amount, false)
+                local price, pricei, tfees = utils.calculatePrice(item, order.amount, false)
                 userData.balance = userData.balance - price
                 SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated - order.amount
-                SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + price
+                SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + (price - tfees)
                 SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count - order.amount
                 utils.saveCategory(cat, SolidityPools.items[cat])
                 if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
                     SolidityPools.session.balance = userData.balance
                 end
                 utils.saveUser(userData.uuid, userData)
+                local shopDta = utils.getShopData()
+                shopDta.transactionFees = shopDta.transactionFees + tfees
+                utils.saveShopData(shopDta)
                 os.queueEvent("sp_render")
                 SolidityPools.storage.exportItems(echest.id, item.query, order.amount)
                 local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = order.amount, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
@@ -136,7 +139,7 @@ local function doFulfillment(order, userData)
                     }))
                     return
                 end
-                local highestItemAccepted = item.itemLimit - item.count
+                local highestItemAccepted = item.itemLimit - math.min(item.count, item.allocated)
                 local soldCount = math.min(actuallySold, highestItemAccepted)
                 if soldCount < 1 then
                     local msg = generateResponse("order_failed", order.req, { message = "Item limit reached. The shop is not accepting any more of this item.", error = "order_item_limit_reached", orderId = order.id }, userData.apiKey)
@@ -156,16 +159,19 @@ local function doFulfillment(order, userData)
                 end
                 local remainder = actuallySold - soldCount
                 SolidityPools.storage.importItems(config.holderChest, item.query, soldCount)
-                local price, pricei = utils.calculatePrice(item, soldCount, true)
+                local price, pricei, tfees = utils.calculatePrice(item, soldCount, true)
                 userData.balance = userData.balance + price
                 SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated + soldCount
-                SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney - price
+                SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney - (price + tfees)
                 SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count + soldCount
                 utils.saveCategory(cat, SolidityPools.items[cat])
                 if SolidityPools.session.is and (SolidityPools.session.uuid == userData.uuid) then
                     SolidityPools.session.balance = userData.balance
                 end
                 utils.saveUser(userData.uuid, userData)
+                local shopDta = utils.getShopData()
+                shopDta.transactionFees = shopDta.transactionFees + tfees
+                utils.saveShopData(shopDta)
                 os.queueEvent("sp_render")
                 if remainder > 0 then
                     local holdWrp = peripheral.wrap(config.holderChest)

@@ -1,29 +1,23 @@
--- fix 1 item issues
--- escrow the 5%
--- calculate SPs balance by removing the debt
 local function calculatePrice(item, quantity, isSell)
     local itemAmount = math.min(item.allocated, item.count)
     local moneyAmount = math.floor(math.min(item.allocatedMoney, SolidityPools.balance))
     if quantity == 0 then
-        return math.floor(moneyAmount / itemAmount), math.floor(moneyAmount / itemAmount)
+        return math.floor(moneyAmount / itemAmount), math.floor(moneyAmount / itemAmount), 0
     end
     local price = 0
     for i=1, quantity do
-        if (itemAmount < 1) and (not isSell) then
-            price = math.huge
-            break
-        end
-        if (moneyAmount < 10000) and isSell then
-            price = 0
-            break
-        elseif (moneyAmount < 10000) and (not isSell) then
-            price = math.huge
-            break
-        end
         if isSell then
             itemAmount = itemAmount + 1
         else
             itemAmount = itemAmount - 1
+        end
+        if (itemAmount < 5) and (not isSell) then
+            price = math.huge
+            break
+        end
+        if (itemAmount > item.itemLimit) and isSell then
+            price = 0
+            break
         end
         local temp = math.floor(moneyAmount / itemAmount)
         price = price + temp
@@ -32,13 +26,21 @@ local function calculatePrice(item, quantity, isSell)
         else
             moneyAmount = moneyAmount + temp
         end
+        if (moneyAmount < 50000) and isSell then
+            price = 0
+            break
+        end
+        if i % 1000 == 0 then
+            os.sleep(0)
+        end
     end
+    local tradingFees = math.floor(price * (SolidityPools.config.tradingFees/100))
     if isSell then
-        price = price - price * (SolidityPools.config.tradingFees/100)
+        price = price - tradingFees
     else
-        price = price + price * (SolidityPools.config.tradingFees/100)
+        price = price + tradingFees
     end
-    return math.floor(price), math.floor(price / quantity)
+    return math.floor(price), math.floor(price / quantity), tradingFees
 end
 
 local function isPlayerClose(name)

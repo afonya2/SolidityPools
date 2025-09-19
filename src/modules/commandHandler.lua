@@ -220,22 +220,26 @@ local function onCommand(user, args, data)
                 chatbox.tell(user, "&cThe shop doesn't have enough stock of that item.", config.shopname, "format")
                 return
             end
-            local price, pricei = utils.calculatePrice(item, amount, false)
+            SolidityPools.lockInv = true
+            local price, pricei, tfees = utils.calculatePrice(item, amount, false)
             if SolidityPools.session.balance < price then
                 chatbox.tell(user, "&cYou don't have enough money for this purchase.", config.shopname, "format")
+                SolidityPools.lockInv = false
                 return
             end
-            SolidityPools.lockInv = true
             local ai = item.allocated
             local am = item.allocatedMoney
             local pb = SolidityPools.session.balance
             SolidityPools.session.balance = SolidityPools.session.balance - price
             SolidityPools.items[cat][itemk].allocated = SolidityPools.items[cat][itemk].allocated - amount
-            SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + price
+            SolidityPools.items[cat][itemk].allocatedMoney = SolidityPools.items[cat][itemk].allocatedMoney + (price - tfees)
             SolidityPools.items[cat][itemk].count = SolidityPools.items[cat][itemk].count - amount
             utils.saveCategory(cat, SolidityPools.items[cat])
             userData.balance = SolidityPools.session.balance
             utils.saveUser(data.user.uuid, userData)
+            local shopDta = utils.getShopData()
+            shopDta.transactionFees = shopDta.transactionFees + tfees
+            utils.saveShopData(shopDta)
             os.queueEvent("sp_render")
             chatbox.tell(user, "&aYou bought &7x"..amount.." "..item.name.." &afor &6"..(price/1000000).."kro &7("..(pricei/1000000).."kro/i)", config.shopname, "format")
             SolidityPools.storage.exportItems("turtle", item.query, amount)
