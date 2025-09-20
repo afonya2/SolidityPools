@@ -12,7 +12,7 @@ local function generateResponse(type, req, data, sign)
         ["time"] = math.floor(os.epoch("utc") / 1000),
         ["computer"] = os.getComputerID()
     }
-    local tempmsg = textutils.serialise(textutils.unserialise(textutils.serialise(msg, { allow_repetitions = true, compact = true })), { allow_repetitions = true, compact = true })
+    local tempmsg = utils.safeSerialise(utils.copy(msg))
     msg.hash = utils.bytesToHexString(SolidityPools.sha.digest(sign..tempmsg))
     return textutils.serialise(msg, { allow_repetitions = true, compact = true })
 end
@@ -27,7 +27,7 @@ local function onApiMessage(msgId, pos, data, replyChannel)
     end
     local rawData = utils.copy(data)
     rawData.hash = nil
-    local rawHash = utils.bytesToHexString(SolidityPools.sha.digest(userData.apiKey..textutils.serialise(rawData, { allow_repetitions = true, compact = true })))
+    local rawHash = utils.bytesToHexString(SolidityPools.sha.digest(userData.apiKey..utils.safeSerialise(rawData)))
     local apiMsg = textutils.serialise(data, { allow_repetitions = true })
     local apiMsgCut = {}
     while #apiMsg > 0 do

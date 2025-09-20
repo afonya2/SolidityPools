@@ -251,6 +251,33 @@ local function getOrdersOfUser(uuid)
     return orders
 end
 
+local function safeSerialise(tbl)
+    local tType = type(tbl)
+    if tType == "table" then
+        local keys = {}
+        for k in pairs(tbl) do
+            table.insert(keys, k)
+        end
+        table.sort(keys)
+
+        local result = {}
+        table.insert(result, "{")
+        for i, k in ipairs(keys) do
+            local v = tbl[k]
+            table.insert(result, "[" .. safeSerialise(k) .. "]=" .. safeSerialise(v))
+            table.insert(result, ",")
+        end
+        table.insert(result, "}")
+        return table.concat(result)
+    elseif tType == "string" then
+        return string.format("%q", tbl)
+    elseif tType == "number" or tType == "boolean" or tType == "nil" then
+        return tostring(tbl)
+    else
+        error("unsupported type: " .. tType)
+    end
+end
+
 return {
     calculatePrice = calculatePrice,
     isPlayerClose = isPlayerClose,
@@ -268,5 +295,6 @@ return {
     positionMessage = positionMessage,
     base10ToBase16 = base10ToBase16,
     bytesToHexString = bytesToHexString,
-    getOrdersOfUser = getOrdersOfUser
+    getOrdersOfUser = getOrdersOfUser,
+    safeSerialise = safeSerialise
 }
