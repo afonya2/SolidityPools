@@ -1,7 +1,4 @@
 # Raw (modem) API documentation
-## Message communication
-
-
 ## Client to Server packets
 ```lua
 {
@@ -273,6 +270,27 @@ Returns your currently queued orders
 }
 ```
 
+### order_fulfilled
+The order was successfully fulfilled
+
+**Additional data**
+
+- orderId: string: The order ID
+- item: string: The name of the item
+- amount: number: The amount you bought/sold
+- price: number: The price of the items
+- pricePerItem: number: The price per item
+
+### order_failed
+An error message, indicates that there was an error while fulfilling your order
+
+**See**
+
+- [order_internal_error](#order_internal_error)
+- [order_internal_timeout](#order_internal_timeout)
+- [order_item_import_failed](#order_item_import_failed)
+- [order_item_limit_reached](#order_item_limit_reached)
+
 ## Errors
 Errors are Server to Client packets with type `error`. They always have an `error` and a `message` field explaining the error.
 
@@ -334,4 +352,112 @@ You have too many orders pending. See [Limitations](#limitations)
 ### unknown_type
 The packet type is unknown
 
+### order_internal_timeout
+There was an internal timeout while fulfilling your order
+
+**Additional data**
+
+- orderId: string: The ID of the order
+
+### order_internal_error
+There was an internal error while fulfilling your order
+
+**Additional data**
+
+- orderId: string: The ID of the order
+
+### order_item_limit_reached
+The item limit is reached and the shop won't accept more of that item
+
+**Additional data**
+
+- orderId: string: The ID of the order
+
+### order_item_import_failed
+There was an error while trying to import your items into the storage
+
+**Additional data**
+
+- orderId: string: The ID of the order
+
 ## Limitations
+
+- Each computer is limited to 1 packet/second. Further packets will be dropped.
+- Invalid packet format, invalid signature will result in the packet getting dropped.
+- The shop can have 100 queued orders at a time.
+- Each user can have 5 queued orders at a time.
+
+## Message communication
+SolidityPools uses symmetric message signatures to verify that a packet is from a specific user.
+
+Example code for signing and transmitting:
+```lua
+local sha = require("sha256") -- https://pastebin.com/6UV4qfNF
+local apiKey = ""
+local port = 1234
+
+local function base10ToBase16(n)
+    local convo = {[0]="0",[1]="1",[2]="2",[3]="3",[4]="4",[5]="5",[6]="6",[7]="7",[8]="8",[9]="9",[10]="a",[11]="b",[12]="c",[13]="d",[14]="e",[15]="f"}
+    local out = ""
+    while n > 0 do
+        out = convo[n%16] .. out
+        n = math.floor(n/16)
+    end
+    return out
+end
+local function bytesToHexString(tbl)
+    local out = ""
+    for i=1,#tbl do
+        local temp = base10ToBase16(tbl[i])
+        if #temp == 1 then
+            temp = "0" .. temp
+        end
+        out = out .. temp
+    end
+    return out
+end
+local function copy(tbl, deep)
+    local out = {}
+    for k,v in pairs(tbl) do
+        if deep and type(v) == "table" then
+            out[k] = copy(v, deep)
+        else
+            out[k] = v
+        end
+    end
+    return out
+end
+local function safeSerialise(tbl)
+    local tType = type(tbl)
+    if tType == "table" then
+        local keys = {}
+        for k in pairs(tbl) do
+            table.insert(keys, k)
+        end
+        table.sort(keys)
+
+        local result = {}
+        table.insert(result, "{")
+        for i, k in ipairs(keys) do
+            local v = tbl[k]
+            table.insert(result, "[" .. safeSerialise(k) .. "]=" .. safeSerialise(v))
+            table.insert(result, ",")
+        end
+        table.insert(result, "}")
+        return table.concat(result)
+    elseif tType == "string" then
+        return string.format("%q", tbl)
+    elseif tType == "number" or tType == "boolean" or tType == "nil" then
+        return tostring(tbl)
+    else
+        error("unsupported type: " .. tType)
+    end
+end
+
+local msg = {
+    ...
+}
+local hashed = safeSerialise(copy(msg))
+msg.hash = bytesToHexString(sha.digest(apiKey .. hashed))
+modem.transmit(port, port, textutils.serialise(msg, { allow_repetitions = true, compact = true }))
+```

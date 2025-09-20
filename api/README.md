@@ -35,6 +35,11 @@ Returns your current balance
 1. number: The user's balance
 2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#balance_ack)
 
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
+
 **Throws**
 
 - If the received message contains an invalid signature
@@ -54,6 +59,11 @@ Returns the shop information
 
 1. table: The shop information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#shop_info)
 2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#shop_info)
+
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
 
 **Throws**
 
@@ -76,6 +86,11 @@ Returns the information of a specific item
 
 1. table: The item information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#item_info)
 2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#item_info)
+
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
 
 **Throws**
 
@@ -101,6 +116,11 @@ Returns the price of a specific item. If you want to see the sell price of an it
 2. number: The price per item
 3. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#price_ack)
 
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
+
 **Throws**
 
 - If the received message contains an invalid signature
@@ -124,6 +144,11 @@ Returns the arbitrage possibility for a specific item
 1. table: The arb possibility information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#arb_ack)
 2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#arb_ack)
 
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
+
 **Throws**
 
 - If the received message contains an invalid signature
@@ -143,6 +168,11 @@ Returns the money information of the shop
 
 1. table: The money information of the shop [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#money_info)
 2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#money_info)
+
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
 
 **Throws**
 
@@ -166,6 +196,11 @@ Lets you withdraw money
 
 1. number: Your new balance
 2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#withdraw)
+
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
 
 **Throws**
 
@@ -201,6 +236,16 @@ Or **when waitForComplete is true**
 6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_queued)
 7. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_fulfilled)
 
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
+
+Or **when waitForComplete is true and the error happened in the 2nd response**
+
+1. string: The order ID
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
+
 **Throws**
 
 - If the received message contains an invalid signature
@@ -234,6 +279,16 @@ Or **when waitForComplete is true**
 5. number: The price per item 
 6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_queued)
 7. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_fulfilled)
+
+Or
+
+1. nil: There was an error while processing the request
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
+
+Or **when waitForComplete is true and the error happened in the 2nd response**
+
+1. string: The order ID
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
 
 **Throws**
 
@@ -283,6 +338,11 @@ Can be used to wait until the order is fulfilled
 4. number: The price of the sell/purchase
 5. number: The price per item 
 6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_fulfilled)
+
+Or
+
+1. string: The order ID
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#errors)
 
 **Throws**
 
