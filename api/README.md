@@ -12,7 +12,7 @@ Next you will need an ender storage that is owned by you. You can get one by cra
 ## Using the API
 You can choose 2 options here.
 1. You can make your own API using the docs in: [Modem Docs](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
-2. You can use the pre-made Lua API by running `wget https://github.com/afonya2/SolidityPools/blob/v2/api/api.lua spapi.lua`
+2. You can use the pre-made Lua API by running `wget https://raw.githubusercontent.com/afonya2/SolidityPools/refs/heads/v2/api/api.lua spapi.lua`
 
 > [!IMPORTANT]  
 > You should still read [Modem Docs](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md), to learn about the limitations and errors of the api

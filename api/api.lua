@@ -1,3 +1,8 @@
+if not fs.exists("sha256.lua") then
+    print("No sha256 found, downloading...")
+    shell.run("pastebin get 6UV4qfNF sha256.lua")
+end
+
 local sha = require("sha256")
 local modem = nil
 for k,v in ipairs(peripheral.getNames()) do
