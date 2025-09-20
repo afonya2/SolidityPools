@@ -15,7 +15,7 @@ You can choose 2 options here.
 2. You can use the pre-made Lua API by running `wget https://github.com/afonya2/SolidityPools/blob/v2/api/api.lua spapi.lua`
 
 > [!IMPORTANT]  
-> You should still read [Modem Docs](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md), to learn about the limitations of the api
+> You should still read [Modem Docs](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md), to learn about the limitations and errors of the api
 
 ## Lua API docs
 To set it up with your api key you need to do the following:
@@ -112,7 +112,7 @@ api.price("rds", 2)
 ```
 
 ### api.arb(item, price)
-Returns the arbitrage possibility for a specific item.
+Returns the arbitrage possibility for a specific item
 
 **Parameters**
 
