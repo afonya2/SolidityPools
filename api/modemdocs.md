@@ -26,8 +26,6 @@ Returns the user's current balance
 
 - [balance_ack](#balance_ack)
 
-**Errors**
-
 ### info
 Returns information about the shop or a specified item
 
@@ -41,6 +39,8 @@ Returns information about the shop or a specified item
 - [item_info](#item_info)
 
 **Errors**
+
+- [item_not_found](#item_not_found)
 
 ### price
 Returns the price of a specific item. If you want to see the sell price of an item, set the `amount` field negative
@@ -56,6 +56,10 @@ Returns the price of a specific item. If you want to see the sell price of an it
 
 **Errors**
 
+- [missing_data](#missing_data)
+- [invalid_data](#invalid_data)
+- [item_not_found](#item_not_found)
+
 ### arb
 Returns the arbitrage possibility for a specific item
 
@@ -70,6 +74,10 @@ Returns the arbitrage possibility for a specific item
 
 **Errors**
 
+- [missing_data](#missing_data)
+- [invalid_data](#invalid_data)
+- [item_not_found](#item_not_found)
+
 ### money
 Returns the money information of the shop
 
@@ -78,8 +86,6 @@ Returns the money information of the shop
 **Server response**
 
 - [money_info](#money_info)
-
-**Errors**
 
 ### withdraw
 Lets you withdraw money
@@ -95,6 +101,14 @@ Lets you withdraw money
 
 **Errors**
 
+- [missing_data](#missing_data)
+- [invalid_data](#invalid_data)
+- [kromer_disconnected](#kromer_disconnected)
+- [please_wait](#please_wait)
+- [insufficient_balance](#insufficient_balance)
+- [shop_insufficient_balance](#shop_insufficient_balance)
+- [transaction_failed](#transaction_failed)
+
 ### buy
 Queues a buy order
 
@@ -108,6 +122,14 @@ Queues a buy order
 - [order_queued](#order_queued)
 
 **Errors**
+
+- [missing_data](#missing_data)
+- [invalid_data](#invalid_data)
+- [item_not_found](#item_not_found)
+- [no_api_chest](#no_api_chest)
+- [no_agreement](#no_agreement)
+- [too_many_orders](#too_many_orders)
+- [too_many_active_orders](#too_many_active_orders)
 
 ### sell
 Queues a sell order
@@ -123,6 +145,14 @@ Queues a sell order
 
 **Errors**
 
+- [missing_data](#missing_data)
+- [invalid_data](#invalid_data)
+- [item_not_found](#item_not_found)
+- [no_api_chest](#no_api_chest)
+- [no_agreement](#no_agreement)
+- [too_many_orders](#too_many_orders)
+- [too_many_active_orders](#too_many_active_orders)
+
 ### getOrders
 Returns your currently queued orders
 
@@ -131,8 +161,6 @@ Returns your currently queued orders
 **Server response**
 
 - [orders_ack](#orders_ack)
-
-**Errors**
 
 ## Server to Client packets
 ```lua
@@ -246,5 +274,64 @@ Returns your currently queued orders
 ```
 
 ## Errors
+Errors are Server to Client packets with type `error`. They always have an `error` and a `message` field explaining the error.
+
+### banned
+You are banned from using the shop or from using the API
+
+**Additional data**
+
+- reason: string: The reason of the ban
+
+### item_not_found
+The item you specified can not be found
+
+**Additional data**
+
+- suggestion?: string: The suggested item, if there is one
+
+### missing_data
+You didn't specify enough data
+
+**Additional data**
+
+- data: table: The list of data you need to specify
+
+### invalid_data
+You sent invalid data
+
+**Additional data**
+
+- data: string: The invalid data
+
+### kromer_disconnected
+Kromer is not connected
+
+### please_wait
+Please wait a few seconds, until the shop processes something
+
+### insufficient_balance
+You don't have enough money
+
+### shop_insufficient_balance
+The shop doesn't have enough money
+
+### transaction_failed
+The withdraw transaction failed
+
+### no_api_chest
+You don't have an API chest set up, please look at [Setup](https://github.com/afonya2/SolidityPools/blob/v2/api/README.md#setup)
+
+### no_agreement
+You need to agree to the TOS before making any orders. Run `\sp2 agree` to agree to the TOS
+
+### too_many_orders
+There are too many orders for the shop to process at the moment. See [Limitations](#limitations)
+
+### too_many_active_orders
+You have too many orders pending. See [Limitations](#limitations)
+
+### unknown_type
+The packet type is unknown
 
 ## Limitations

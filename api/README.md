@@ -33,7 +33,7 @@ Returns your current balance
 **Returns**
 
 1. number: The user's balance
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#balance_ack)
 
 **Throws**
 
@@ -52,8 +52,8 @@ Returns the shop information
 
 **Returns**
 
-1. table: The shop information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+1. table: The shop information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#shop_info)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#shop_info)
 
 **Throws**
 
@@ -74,8 +74,8 @@ Returns the information of a specific item
 
 **Returns**
 
-1. table: The item information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+1. table: The item information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#item_info)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#item_info)
 
 **Throws**
 
@@ -99,7 +99,7 @@ Returns the price of a specific item. If you want to see the sell price of an it
 
 1. number: The price of the item
 2. number: The price per item
-3. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+3. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#price_ack)
 
 **Throws**
 
@@ -121,8 +121,8 @@ Returns the arbitrage possibility for a specific item
 
 **Returns**
 
-1. table: The arb possibility information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+1. table: The arb possibility information [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#arb_ack)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#arb_ack)
 
 **Throws**
 
@@ -141,8 +141,8 @@ Returns the money information of the shop
 
 **Returns**
 
-1. table: The money information of the shop [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+1. table: The money information of the shop [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#money_info)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#money_info)
 
 **Throws**
 
@@ -165,7 +165,7 @@ Lets you withdraw money
 **Returns**
 
 1. number: Your new balance
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#withdraw)
 
 **Throws**
 
@@ -189,7 +189,7 @@ Queues a buy order
 **Returns**
 
 1. string: The order ID
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_queued)
 
 Or **when waitForComplete is true**
 
@@ -198,7 +198,8 @@ Or **when waitForComplete is true**
 3. number: The amount purchased
 4. number: The price of the purchase
 5. number: The price per item 
-6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_queued)
+7. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_fulfilled)
 
 **Throws**
 
@@ -222,7 +223,7 @@ Queues a sell order
 **Returns**
 
 1. string: The order ID
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_queued)
 
 Or **when waitForComplete is true**
 
@@ -231,7 +232,8 @@ Or **when waitForComplete is true**
 3. number: The amount sold
 4. number: The price of the sell
 5. number: The price per item 
-6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_queued)
+7. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_fulfilled)
 
 **Throws**
 
@@ -250,8 +252,8 @@ Returns your currently queued orders
 
 **Returns**
 
-1. table: Your queued orders [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
-2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+1. table: Your queued orders [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#orders_ack)
+2. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#orders_ack)
 
 **Throws**
 
@@ -280,7 +282,7 @@ Can be used to wait until the order is fulfilled
 3. number: The amount sold/purchased
 4. number: The price of the sell/purchase
 5. number: The price per item 
-6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md)
+6. table: The raw response from SP [more info](https://github.com/afonya2/SolidityPools/blob/v2/api/modemdocs.md#order_fulfilled)
 
 **Throws**
 
