@@ -25,3 +25,7 @@
 ## 5. Alt accounts and evasion
 1. You are not allowed to use alt accounts to **evade bans**.
 2. You are allowed to use an alt for another API key.
+
+## 6. Updates
+1. Terms and Conditions may be updated at any time.
+2. It’s the player’s responsibility to stay informed about the latest version.
