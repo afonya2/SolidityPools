@@ -522,7 +522,7 @@ local function apiServer()
                 messages[k] = nil
             end
         end
-        if config.apiEnabled and (channel == config.apiChannel) and (type(message) == "string") then
+        if config.apiEnabled and (channel == config.apiChannel) and (type(message) == "string") and (distance ~= 0) and (distance ~= nil) then
             local ok,data = pcall(textutils.unserialize, message)
             if ok then
                 if (data.computer ~= nil) and (data.computer ~= os.getComputerID()) and (data.time ~= nil) and (data.user ~= nil) and (data.hash ~= nil) and (data.protocol == "SPAPIv1") then

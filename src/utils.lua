@@ -26,11 +26,11 @@ local function calculatePrice(item, quantity, isSell)
         else
             moneyAmount = moneyAmount + temp
         end
-        if (moneyAmount < 50000) and isSell then
+        if (moneyAmount < 1) and isSell then
             price = 0
             break
         end
-        if i % 1000 == 0 then
+        if i % 200 == 0 then
             os.sleep(0)
         end
     end

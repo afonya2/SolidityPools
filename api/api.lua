@@ -302,11 +302,15 @@ local function SPApi(channel, uuid, apiKey)
     end
     function api.listenForOrder(orderId)
         expect("listenForOrder", 1, orderId, "string")
-        local res = getResponse(apiKey, nil, "order_fulfilled", "order_failed")
-        if (res == nil) or (res.type == "order_failed") then
-            return orderId, res
+        while true do
+            local res = getResponse(apiKey, nil, "order_fulfilled", "order_failed")
+            if res.data.orderId == orderId then
+                if (res == nil) or (res.type == "order_failed") then
+                    return orderId, res
+                end
+                return res.data.orderId, res.data.item, res.data.amount, res.data.price, res.data.pricePerItem, res
+            end
         end
-        return res.data.orderId, res.data.item, res.data.amount, res.data.price, res.data.pricePerItem, res
     end
 
     return api

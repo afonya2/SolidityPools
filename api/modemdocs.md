@@ -386,6 +386,7 @@ There was an error while trying to import your items into the storage
 - Invalid packet format, invalid signature will result in the packet getting dropped.
 - The shop can have 100 queued orders at a time.
 - Each user can have 5 queued orders at a time.
+- Cross-dimension packets are dropped for security reasons.
 
 ## Message communication
 SolidityPools uses symmetric message signatures to verify that a packet is from a specific user.
