@@ -111,6 +111,7 @@ local function doFulfillment(order, userData)
                 SolidityPools.storage.exportItems(echest.id, item.query, order.amount)
                 local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = order.amount, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
                 modem.transmit(order.rc, config.apiChannel, msg)
+                SolidityPools.sendShopsync = true
                 SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, bought `x" .. order.amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
             elseif order.type == "sell" then
                 local ecList = echest.wrap.list()
@@ -198,6 +199,7 @@ local function doFulfillment(order, userData)
                 end
                 local msg = generateResponse("order_fulfilled", order.req, { orderId = order.id, item = item.name, amount = soldCount, price = (price/1000000), pricePerItem = (pricei/1000000) }, userData.apiKey)
                 modem.transmit(order.rc, config.apiChannel, msg)
+                SolidityPools.sendShopsync = true
                 SolidityPools.logDiscordMessage("Order fulfilled: `" .. order.id .. "`, sold `x" .. soldCount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (userData.balance/1000000) .. "kro`")
             else
                 local msg = generateResponse("order_failed", order.req, { message = "An error occurred while fulfilling your order.", error = "order_internal_error", orderId = order.id }, userData.apiKey)

@@ -11,6 +11,7 @@ local kromerManager = require("modules.kromerManager")
 local webhookManager = require("modules.webhookManager")
 local apiServer = require("modules.apiServer")
 local orderFullfill = require("modules.orderFulfillment")
+local shopsync = require("modules.shopsync")
 
 local function loadConfig(filename)
     local fa = fs.open(filename, "r")
@@ -207,7 +208,8 @@ _G.SolidityPools = {
         end
     end,
     orderQueue = {},
-    defragNeeded = false
+    defragNeeded = false,
+    sendShopsync = false
 }
 
 local isCrashed = nil
@@ -240,6 +242,8 @@ end,function()
     local ok,err = xpcall(apiServer, crash)
 end,function()
     local ok,err = xpcall(orderFullfill, crash)
+end,function()
+    local ok,err = xpcall(shopsync, crash)
 end)
 
 if isCrashed then

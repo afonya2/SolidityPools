@@ -73,6 +73,8 @@ local function onCommand(user, args, data)
 
 &aDescription: &7]]..config.description..[[
 
+&aOwners: &7]]..table.concat(config.owners, ", ")..[[
+
 &aLocation: &7x: ]]..SolidityPools.location.x..[[ y: ]]..SolidityPools.location.y..[[ z: ]]..SolidityPools.location.z..[[
 
 &aAddress: &7]]..config.address..[[
@@ -255,6 +257,7 @@ local function onCommand(user, args, data)
             end
             turtle.select(1)
             SolidityPools.lockInv = false
+            SolidityPools.sendShopsync = true
             SolidityPools.logDiscordMessage("User: `" .. user:lower() .. "` (`" .. data.user.uuid .. "`) bought `x" .. amount .. " " .. item.name .. "` for " .. (price/1000000) .. "kro" .. " (`" .. pricei/1000000 .. "kro/i`)\nAllocated items: `" .. ai .. " -> " .. item.allocated .. "`\nAllocated money: `" .. (am/1000000) .. "kro -> " .. (item.allocatedMoney/1000000) .. "kro`\nUser balance: `" .. (pb/1000000) .. "kro -> " .. (SolidityPools.session.balance/1000000) .. "kro`")
         else
             local bestMatch = nil

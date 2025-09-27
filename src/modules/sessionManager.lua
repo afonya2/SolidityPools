@@ -144,6 +144,7 @@ local function onItemPickup()
             turtle.drop(remainder)
         end
         SolidityPools.lockInv = false
+        SolidityPools.sendShopsync = true
     else
         chatbox.tell(SolidityPools.session.username, "&cThe shop doesn't purchase this item.", config.shopname, "format")
         turtle.drop()
