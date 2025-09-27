@@ -167,7 +167,7 @@ end
 
 local function saveShopData(data)
     local f = fs.open("shopdata.txt", "w")
-    f.write(textutils.serialize(data))
+    f.write(textutils.serialize(data, { allow_repetitions = true }))
     f.close()
 end
 

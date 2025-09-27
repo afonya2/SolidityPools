@@ -1,22 +1,25 @@
-print("Welcome to the SolidityPools installer!")
+print("Welcome to the SolidityPools V2 installer!")
 
 local repo = "afonya2/SolidityPools"
-local branch = "main"
+local branch = "v2"
 local files = {
     ["items/Ores.conf"] = "items/Ores.conf",
-    ["modules/adminCommands.lua"] = "modules/adminCommands.lua",
-    ["modules/commandHandler.lua"] = "modules/commandHandler.lua",
-    ["modules/frontend.lua"] = "modules/frontend.lua",
-    ["modules/itemHelper.lua"] = "modules/itemHelper.lua",
-    ["modules/kristManager.lua"] = "modules/kristManager.lua",
-    ["modules/sessionHandler.lua"] = "modules/sessionHandler.lua",
-    ["modules/shopsync.lua"] = "modules/shopsync.lua",
-    ["bigfont.lua"] = "bigfont.lua",
-    ["BIL.lua"] = "BIL.lua",
+    ["src/modules/adminCommands.lua"] = "modules/adminCommands.lua",
+    ["src/modules/apiServer.lua"] = "modules/apiServer.lua",
+    ["src/modules/commandHandler.lua"] = "modules/commandHandler.lua",
+    ["src/modules/frontend.lua"] = "modules/frontend.lua",
+    ["src/modules/itemManager.lua"] = "modules/itemManager.lua",
+    ["src/modules/kromerManager.lua"] = "modules/kromerManager.lua",
+    ["src/modules/orderFulfillment.lua"] = "modules/orderFulfillment.lua",
+    ["src/modules/sessionManager.lua"] = "modules/sessionManager.lua",
+    ["src/modules/webhookManager.lua"] = "modules/webhookManager.lua",
+    ["src/modules/shopsync.lua"] = "modules/shopsync.lua",
+    ["src/BIL.lua"] = "BIL.lua",
     ["config.conf"] = "config.conf",
-    ["discordWebhook.lua"] = "discordWebhook.lua",
-    ["kristapi.lua"] = "kristapi.lua",
-    ["main.lua"] = "main.lua"
+    ["src/discordWebhook.lua"] = "discordWebhook.lua",
+    ["src/kromerapi.lua"] = "kromerapi.lua",
+    ["src/main.lua"] = "main.lua",
+    ["src/utils.lua"] = "utils.lua"
 }
 print("Scanning for old config files...")
 local cfgfiles = {
@@ -50,6 +53,15 @@ for k,v in pairs(cfgcache) do
     local h = fs.open(k, "wb")
     h.write(v)
     h.close()
+end
+
+if not fs.exists("sha256.lua") then
+    print("No sha256 found, downloading...")
+    shell.run("pastebin get 6UV4qfNF sha256.lua")
+end
+if not fs.exists("bigfont.lua") then
+    print("No bigfont found, downloading...")
+    shell.run("pastebin get 3LfWxRWh bigfont.lua")
 end
 
 print("Done")
