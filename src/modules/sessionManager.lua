@@ -77,7 +77,7 @@ local function onItemPickup()
                 utils.saveUser(SolidityPools.session.uuid, userData)
                 chatbox.tell(SolidityPools.session.username, "&aYour API chest has been set successfully!", config.shopname, "format")
                 SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) set their API chest to slot `"..nextPos.."`.")
-            elseif data.mode == "failed" then
+            elseif data.mode == "fail" then
                 chatbox.tell(SolidityPools.session.username, "&cPlease use your own chest, and make sure it's a private chest.", config.shopname, "format")
                 SolidityPools.logDiscordMessage("User: `" .. SolidityPools.session.username:lower() .. "` (`" .. SolidityPools.session.uuid .. "`) wanted to set their API chest, but the operation failed: " .. data.message)
                 ecChest.pushItems(SolidityPools.wiredModem.wrap.getNameLocal(), nextPos, 1, 1)
