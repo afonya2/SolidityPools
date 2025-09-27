@@ -203,6 +203,9 @@ _G.SolidityPools = {
     },
     discordCache = {},
     logDiscordMessage = function(msg)
+        if msg == nil then
+            print("Fuckass: " .. debug.traceback())
+        end
         if config.webhook then
             table.insert(SolidityPools.discordCache, msg .. " @ `" .. os.date("%Y-%m-%d %H:%M:%S") .. "`")
         end

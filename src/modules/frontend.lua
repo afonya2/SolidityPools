@@ -20,8 +20,9 @@ local function renderItem(monitor, k, item, x, y, longest, hidden)
     if longest == nil then
         longest = math.max(#item.name, #("Sell:  "..(sx1/1000000)), #("Buy:  "..(x1/1000000)))
     end
-    if longest+3 > w then
-        y = y + 1
+    if x+longest+3 > w then
+        x = 2
+        y = y + 6
     end
     if not hidden then
         drawRect(monitor, x, y, longest + 2, 5, config.palette.items.bg)

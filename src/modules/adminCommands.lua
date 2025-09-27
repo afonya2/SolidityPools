@@ -124,10 +124,12 @@ local function adminCommands(user, args, data, userData)
                 SolidityPools.items[cat][pos].allocated = item.allocated + amount
                 utils.saveCategory(cat, SolidityPools.items[cat])
                 chatbox.tell(user, "&aSuccessfully changed allocated items of &7"..item.name.."&a by &7"..amount.."&a. New allocated items: &7"..SolidityPools.items[cat][pos].allocated, config.shopname, "format")
+                SolidityPools.sendShopsync = true
             elseif args[4] == "money" then
                 SolidityPools.items[cat][pos].allocatedMoney = item.allocatedMoney + amount
                 utils.saveCategory(cat, SolidityPools.items[cat])
                 chatbox.tell(user, "&aSuccessfully changed allocated money of &7"..item.name.."&a by &6"..(amount/1000000).."kro&a. New allocated money: &6"..(SolidityPools.items[cat][pos].allocatedMoney/1000000).."kro", config.shopname, "format")
+                SolidityPools.sendShopsync = true
             else
                 chatbox.tell(user, "&cPlease specify a valid type (money/item).", config.shopname, "format")
                 return

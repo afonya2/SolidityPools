@@ -6,17 +6,21 @@ local function sendShopsync()
     for k,v in pairs(SolidityPools.items) do
         for kk, vv in ipairs(v) do
             local queryP = SolidityPools.BIL.processQuery(vv.query)
+            local p1 = utils.calculatePrice(vv, 1)/1000000
+            local p2 = utils.calculatePrice(vv, 1, true)/1000000
+            p1 = math.max(0.001, math.min(999999, p1))
+            p2 = math.max(0.001, math.min(999999, p2))
             table.insert(sentItems, {
                 prices = {
                     {
-                        value = utils.calculatePrice(vv, 1)/1000000,
+                        value = p1,
                         currency = "KRO",
                         address = (config.kromerName ~= nil and config.kromerName..".kro" or config.address)
                     }
                 },
                 item = {
                     name = queryP.itemId,
-                    nbt = queryP.query.nbt,
+                    nbt = (queryP.query and queryP.query.nbt or nil),
                     displayName = vv.name
                 },
                 dynamicPrice = true,
@@ -28,14 +32,14 @@ local function sendShopsync()
                 shopBuysItem = true,
                 prices = {
                     {
-                        value = utils.calculatePrice(vv, 1, true)/1000000,
+                        value = p2,
                         currency = "KRO",
                         address = (config.kromerName ~= nil and config.kromerName..".kro" or config.address)
                     }
                 },
                 item = {
                     name = queryP.itemId,
-                    nbt = queryP.query.nbt,
+                    nbt = (queryP.query and queryP.query.nbt or nil),
                     displayName = vv.name
                 },
                 dynamicPrice = true,
@@ -66,7 +70,7 @@ local function sendShopsync()
 
     local channel = 9773
     local modem = SolidityPools.modem.wrap
-    modem.transmit(channel, os.getComputerID() % 65536, textutils.serialize(ssData, { allow_repetitions = true }))
+    modem.transmit(channel, os.getComputerID() % 65536, ssData)
 end
 
 local function shopsync()
