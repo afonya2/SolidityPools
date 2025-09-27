@@ -65,7 +65,7 @@ local function sendShopsync()
     }
 
     local channel = 9773
-    local modem = SolidityPools.wiredModem.wrap
+    local modem = SolidityPools.modem.wrap
     modem.transmit(channel, os.getComputerID() % 65536, textutils.serialize(ssData, { allow_repetitions = true }))
 end
 
