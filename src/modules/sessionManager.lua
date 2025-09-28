@@ -24,7 +24,7 @@ local function onItemPickup()
         local users = fs.list("/users")
         local nextPos = 1
         for _, user in ipairs(users) do
-            local uData = utils.loadUser(user:gsub(".conf",""))
+            local uData = utils.loadUser(user:gsub(".txt",""))
             if uData.apiChest ~= nil then
                 nextPos = math.max(nextPos, uData.apiChest+1)
                 break

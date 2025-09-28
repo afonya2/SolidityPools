@@ -351,6 +351,10 @@ local function onCommand(user, args, data)
                 chatbox.tell(user, "&cYou don't have an API chest. &aDrop an enderchest owned by you above the turtle!", config.shopname, "format")
                 return
             end
+            if (not SolidityPools.session.is) or (SolidityPools.session.uuid ~= userData.uuid) then
+                chatbox.tell(user, "&cYou must have an active session to retrieve your API chest.", config.shopname, "format")
+                return
+            end
             local ecChest = peripheral.wrap(config.apiChest)
             local itm = ecChest.getItemDetail(userData.apiChest)
             if itm == nil then

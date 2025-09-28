@@ -172,30 +172,32 @@ function BIL.createStorage(storages)
     out.stats = {}
 
     function out.rescanAll()
-        out.itemCache = {}
-        out.stats = {}
+        local tempItemCache = {}
+        local tempStats = {}
         for k,v in ipairs(out.storages) do
             if peripheral.isPresent(v.id) or ((out.storageIds[k] == "turtle") and (turtle ~= nil)) then
                 local size = v.wrap.size()
                 local list = v.wrap.list()
-                out.itemCache[v.id] = {}
-                out.stats[v.id] = {
+                tempItemCache[v.id] = {}
+                tempStats[v.id] = {
                     all = size,
                     used = 0,
                     free = 0
                 }
                 for i=1,size do
                     local detail = list[i]
-                    table.insert(out.itemCache[v.id], detail)
+                    table.insert(tempItemCache[v.id], detail)
                     if detail ~= nil then
-                        out.stats[v.id].used = out.stats[v.id].used + 1
+                        tempStats[v.id].used = tempStats[v.id].used + 1
                     end
                 end
-                out.stats[v.id].free = out.stats[v.id].all - out.stats[v.id].used
+                tempStats[v.id].free = tempStats[v.id].all - tempStats[v.id].used
             else
                 error("Peripheral is not present")
             end
         end
+        out.itemCache = tempItemCache
+        out.stats = tempStats
     end
     function out.rescan(storageId)
         local data = nil

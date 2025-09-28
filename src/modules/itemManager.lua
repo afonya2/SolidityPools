@@ -3,19 +3,23 @@ local function itemManager()
     while true do
         if os.clock() - lastRescan > 20 then
             lastRescan = os.clock()
-            if SolidityPools.defragNeeded then
-                SolidityPools.storage.defragStorage()
-                SolidityPools.defragNeeded = false
-            else
-                SolidityPools.storage.rescanAll()
-            end
-            for k, v in pairs(SolidityPools.items) do
-                for kk,vv in ipairs(v) do
-                    local count = SolidityPools.storage.getItemCount(vv.query)
-                    SolidityPools.items[k][kk].count = count
+            if (not SolidityPools.session.is) and (not SolidityPools.lockInv) then
+                if SolidityPools.defragNeeded then
+                    SolidityPools.lockInv = true
+                    SolidityPools.storage.defragStorage()
+                    SolidityPools.defragNeeded = false
+                    SolidityPools.lockInv = false
+                else
+                    SolidityPools.storage.rescanAll()
                 end
+                for k, v in pairs(SolidityPools.items) do
+                    for kk,vv in ipairs(v) do
+                        local count = SolidityPools.storage.getItemCount(vv.query)
+                        SolidityPools.items[k][kk].count = count
+                    end
+                end
+                SolidityPools.itemsLoaded = true
             end
-            SolidityPools.itemsLoaded = true
         end
         os.sleep(0)
     end
