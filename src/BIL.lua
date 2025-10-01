@@ -186,7 +186,7 @@ function BIL.createStorage(storages)
                 }
                 for i=1,size do
                     local detail = list[i]
-                    table.insert(tempItemCache[v.id], detail)
+                    tempItemCache[v.id][i] = detail
                     if detail ~= nil then
                         tempStats[v.id].used = tempStats[v.id].used + 1
                     end
